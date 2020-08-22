@@ -3533,11 +3533,14 @@ exports.default = function (_ref) {
   var src = _ref.src,
       className = _ref.className,
       alt = _ref.alt,
-      onError = _ref.onError;
+      _ref$defaultSrc = _ref.defaultSrc,
+      defaultSrc = _ref$defaultSrc === undefined ? '//cdn.jsdelivr.net/npm/gitalk@1/src/assets/icon/github.svg' : _ref$defaultSrc;
   return _react2.default.createElement(
     'div',
     { className: 'gt-avatar ' + className },
-    _react2.default.createElement('img', { src: src, alt: '@' + alt, onError: onError })
+    _react2.default.createElement('img', { src: src || defaultSrc, alt: '@' + alt, onError: function onError(e) {
+        e.target.src = defaultSrc;
+      } })
   );
 };
 
@@ -3697,7 +3700,7 @@ if (process.env.NODE_ENV !== 'production') {
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-/** @license React v16.12.0
+/** @license React v16.13.1
  * react-is.production.min.js
  *
  * Copyright (c) Facebook, Inc. and its affiliates.
@@ -3706,12 +3709,12 @@ if (process.env.NODE_ENV !== 'production') {
  * LICENSE file in the root directory of this source tree.
  */
 
-Object.defineProperty(exports,"__esModule",{value:!0});
-var b="function"===typeof Symbol&&Symbol.for,c=b?Symbol.for("react.element"):60103,d=b?Symbol.for("react.portal"):60106,e=b?Symbol.for("react.fragment"):60107,f=b?Symbol.for("react.strict_mode"):60108,g=b?Symbol.for("react.profiler"):60114,h=b?Symbol.for("react.provider"):60109,k=b?Symbol.for("react.context"):60110,l=b?Symbol.for("react.async_mode"):60111,m=b?Symbol.for("react.concurrent_mode"):60111,n=b?Symbol.for("react.forward_ref"):60112,p=b?Symbol.for("react.suspense"):60113,q=b?Symbol.for("react.suspense_list"):
-60120,r=b?Symbol.for("react.memo"):60115,t=b?Symbol.for("react.lazy"):60116,v=b?Symbol.for("react.fundamental"):60117,w=b?Symbol.for("react.responder"):60118,x=b?Symbol.for("react.scope"):60119;function y(a){if("object"===typeof a&&null!==a){var u=a.$$typeof;switch(u){case c:switch(a=a.type,a){case l:case m:case e:case g:case f:case p:return a;default:switch(a=a&&a.$$typeof,a){case k:case n:case t:case r:case h:return a;default:return u}}case d:return u}}}function z(a){return y(a)===m}
-exports.typeOf=y;exports.AsyncMode=l;exports.ConcurrentMode=m;exports.ContextConsumer=k;exports.ContextProvider=h;exports.Element=c;exports.ForwardRef=n;exports.Fragment=e;exports.Lazy=t;exports.Memo=r;exports.Portal=d;exports.Profiler=g;exports.StrictMode=f;exports.Suspense=p;
-exports.isValidElementType=function(a){return"string"===typeof a||"function"===typeof a||a===e||a===m||a===g||a===f||a===p||a===q||"object"===typeof a&&null!==a&&(a.$$typeof===t||a.$$typeof===r||a.$$typeof===h||a.$$typeof===k||a.$$typeof===n||a.$$typeof===v||a.$$typeof===w||a.$$typeof===x)};exports.isAsyncMode=function(a){return z(a)||y(a)===l};exports.isConcurrentMode=z;exports.isContextConsumer=function(a){return y(a)===k};exports.isContextProvider=function(a){return y(a)===h};
-exports.isElement=function(a){return"object"===typeof a&&null!==a&&a.$$typeof===c};exports.isForwardRef=function(a){return y(a)===n};exports.isFragment=function(a){return y(a)===e};exports.isLazy=function(a){return y(a)===t};exports.isMemo=function(a){return y(a)===r};exports.isPortal=function(a){return y(a)===d};exports.isProfiler=function(a){return y(a)===g};exports.isStrictMode=function(a){return y(a)===f};exports.isSuspense=function(a){return y(a)===p};
+var b="function"===typeof Symbol&&Symbol.for,c=b?Symbol.for("react.element"):60103,d=b?Symbol.for("react.portal"):60106,e=b?Symbol.for("react.fragment"):60107,f=b?Symbol.for("react.strict_mode"):60108,g=b?Symbol.for("react.profiler"):60114,h=b?Symbol.for("react.provider"):60109,k=b?Symbol.for("react.context"):60110,l=b?Symbol.for("react.async_mode"):60111,m=b?Symbol.for("react.concurrent_mode"):60111,n=b?Symbol.for("react.forward_ref"):60112,p=b?Symbol.for("react.suspense"):60113,q=b?
+Symbol.for("react.suspense_list"):60120,r=b?Symbol.for("react.memo"):60115,t=b?Symbol.for("react.lazy"):60116,v=b?Symbol.for("react.block"):60121,w=b?Symbol.for("react.fundamental"):60117,x=b?Symbol.for("react.responder"):60118,y=b?Symbol.for("react.scope"):60119;
+function z(a){if("object"===typeof a&&null!==a){var u=a.$$typeof;switch(u){case c:switch(a=a.type,a){case l:case m:case e:case g:case f:case p:return a;default:switch(a=a&&a.$$typeof,a){case k:case n:case t:case r:case h:return a;default:return u}}case d:return u}}}function A(a){return z(a)===m}exports.AsyncMode=l;exports.ConcurrentMode=m;exports.ContextConsumer=k;exports.ContextProvider=h;exports.Element=c;exports.ForwardRef=n;exports.Fragment=e;exports.Lazy=t;exports.Memo=r;exports.Portal=d;
+exports.Profiler=g;exports.StrictMode=f;exports.Suspense=p;exports.isAsyncMode=function(a){return A(a)||z(a)===l};exports.isConcurrentMode=A;exports.isContextConsumer=function(a){return z(a)===k};exports.isContextProvider=function(a){return z(a)===h};exports.isElement=function(a){return"object"===typeof a&&null!==a&&a.$$typeof===c};exports.isForwardRef=function(a){return z(a)===n};exports.isFragment=function(a){return z(a)===e};exports.isLazy=function(a){return z(a)===t};
+exports.isMemo=function(a){return z(a)===r};exports.isPortal=function(a){return z(a)===d};exports.isProfiler=function(a){return z(a)===g};exports.isStrictMode=function(a){return z(a)===f};exports.isSuspense=function(a){return z(a)===p};
+exports.isValidElementType=function(a){return"string"===typeof a||"function"===typeof a||a===e||a===m||a===g||a===f||a===p||a===q||"object"===typeof a&&null!==a&&(a.$$typeof===t||a.$$typeof===r||a.$$typeof===h||a.$$typeof===k||a.$$typeof===n||a.$$typeof===w||a.$$typeof===x||a.$$typeof===y||a.$$typeof===v)};exports.typeOf=z;
 
 
 /***/ }),
@@ -3719,7 +3722,7 @@ exports.isElement=function(a){return"object"===typeof a&&null!==a&&a.$$typeof===
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-/* WEBPACK VAR INJECTION */(function(process) {/** @license React v16.12.0
+/* WEBPACK VAR INJECTION */(function(process) {/** @license React v16.13.1
  * react-is.development.js
  *
  * Copyright (c) Facebook, Inc. and its affiliates.
@@ -3735,8 +3738,6 @@ exports.isElement=function(a){return"object"===typeof a&&null!==a&&a.$$typeof===
 if (process.env.NODE_ENV !== "production") {
   (function() {
 'use strict';
-
-Object.defineProperty(exports, '__esModule', { value: true });
 
 // The Symbol used to tag the ReactElement-like types. If there is no native Symbol
 // nor polyfill, then a plain number is used for performance.
@@ -3757,69 +3758,15 @@ var REACT_SUSPENSE_TYPE = hasSymbol ? Symbol.for('react.suspense') : 0xead1;
 var REACT_SUSPENSE_LIST_TYPE = hasSymbol ? Symbol.for('react.suspense_list') : 0xead8;
 var REACT_MEMO_TYPE = hasSymbol ? Symbol.for('react.memo') : 0xead3;
 var REACT_LAZY_TYPE = hasSymbol ? Symbol.for('react.lazy') : 0xead4;
+var REACT_BLOCK_TYPE = hasSymbol ? Symbol.for('react.block') : 0xead9;
 var REACT_FUNDAMENTAL_TYPE = hasSymbol ? Symbol.for('react.fundamental') : 0xead5;
 var REACT_RESPONDER_TYPE = hasSymbol ? Symbol.for('react.responder') : 0xead6;
 var REACT_SCOPE_TYPE = hasSymbol ? Symbol.for('react.scope') : 0xead7;
 
 function isValidElementType(type) {
   return typeof type === 'string' || typeof type === 'function' || // Note: its typeof might be other than 'symbol' or 'number' if it's a polyfill.
-  type === REACT_FRAGMENT_TYPE || type === REACT_CONCURRENT_MODE_TYPE || type === REACT_PROFILER_TYPE || type === REACT_STRICT_MODE_TYPE || type === REACT_SUSPENSE_TYPE || type === REACT_SUSPENSE_LIST_TYPE || typeof type === 'object' && type !== null && (type.$$typeof === REACT_LAZY_TYPE || type.$$typeof === REACT_MEMO_TYPE || type.$$typeof === REACT_PROVIDER_TYPE || type.$$typeof === REACT_CONTEXT_TYPE || type.$$typeof === REACT_FORWARD_REF_TYPE || type.$$typeof === REACT_FUNDAMENTAL_TYPE || type.$$typeof === REACT_RESPONDER_TYPE || type.$$typeof === REACT_SCOPE_TYPE);
+  type === REACT_FRAGMENT_TYPE || type === REACT_CONCURRENT_MODE_TYPE || type === REACT_PROFILER_TYPE || type === REACT_STRICT_MODE_TYPE || type === REACT_SUSPENSE_TYPE || type === REACT_SUSPENSE_LIST_TYPE || typeof type === 'object' && type !== null && (type.$$typeof === REACT_LAZY_TYPE || type.$$typeof === REACT_MEMO_TYPE || type.$$typeof === REACT_PROVIDER_TYPE || type.$$typeof === REACT_CONTEXT_TYPE || type.$$typeof === REACT_FORWARD_REF_TYPE || type.$$typeof === REACT_FUNDAMENTAL_TYPE || type.$$typeof === REACT_RESPONDER_TYPE || type.$$typeof === REACT_SCOPE_TYPE || type.$$typeof === REACT_BLOCK_TYPE);
 }
-
-/**
- * Forked from fbjs/warning:
- * https://github.com/facebook/fbjs/blob/e66ba20ad5be433eb54423f2b097d829324d9de6/packages/fbjs/src/__forks__/warning.js
- *
- * Only change is we use console.warn instead of console.error,
- * and do nothing when 'console' is not supported.
- * This really simplifies the code.
- * ---
- * Similar to invariant but only logs a warning if the condition is not met.
- * This can be used to log issues in development environments in critical
- * paths. Removing the logging code for production environments will keep the
- * same logic and follow the same code paths.
- */
-var lowPriorityWarningWithoutStack = function () {};
-
-{
-  var printWarning = function (format) {
-    for (var _len = arguments.length, args = new Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
-      args[_key - 1] = arguments[_key];
-    }
-
-    var argIndex = 0;
-    var message = 'Warning: ' + format.replace(/%s/g, function () {
-      return args[argIndex++];
-    });
-
-    if (typeof console !== 'undefined') {
-      console.warn(message);
-    }
-
-    try {
-      // --- Welcome to debugging React ---
-      // This error was thrown as a convenience so that you can use this stack
-      // to find the callsite that caused this warning to fire.
-      throw new Error(message);
-    } catch (x) {}
-  };
-
-  lowPriorityWarningWithoutStack = function (condition, format) {
-    if (format === undefined) {
-      throw new Error('`lowPriorityWarningWithoutStack(condition, format, ...args)` requires a warning ' + 'message argument');
-    }
-
-    if (!condition) {
-      for (var _len2 = arguments.length, args = new Array(_len2 > 2 ? _len2 - 2 : 0), _key2 = 2; _key2 < _len2; _key2++) {
-        args[_key2 - 2] = arguments[_key2];
-      }
-
-      printWarning.apply(void 0, [format].concat(args));
-    }
-  };
-}
-
-var lowPriorityWarningWithoutStack$1 = lowPriorityWarningWithoutStack;
 
 function typeOf(object) {
   if (typeof object === 'object' && object !== null) {
@@ -3881,8 +3828,9 @@ var hasWarnedAboutDeprecatedIsAsyncMode = false; // AsyncMode should be deprecat
 function isAsyncMode(object) {
   {
     if (!hasWarnedAboutDeprecatedIsAsyncMode) {
-      hasWarnedAboutDeprecatedIsAsyncMode = true;
-      lowPriorityWarningWithoutStack$1(false, 'The ReactIs.isAsyncMode() alias has been deprecated, ' + 'and will be removed in React 17+. Update your code to use ' + 'ReactIs.isConcurrentMode() instead. It has the exact same API.');
+      hasWarnedAboutDeprecatedIsAsyncMode = true; // Using console['warn'] to evade Babel and ESLint
+
+      console['warn']('The ReactIs.isAsyncMode() alias has been deprecated, ' + 'and will be removed in React 17+. Update your code to use ' + 'ReactIs.isConcurrentMode() instead. It has the exact same API.');
     }
   }
 
@@ -3925,7 +3873,6 @@ function isSuspense(object) {
   return typeOf(object) === REACT_SUSPENSE_TYPE;
 }
 
-exports.typeOf = typeOf;
 exports.AsyncMode = AsyncMode;
 exports.ConcurrentMode = ConcurrentMode;
 exports.ContextConsumer = ContextConsumer;
@@ -3939,7 +3886,6 @@ exports.Portal = Portal;
 exports.Profiler = Profiler;
 exports.StrictMode = StrictMode;
 exports.Suspense = Suspense;
-exports.isValidElementType = isValidElementType;
 exports.isAsyncMode = isAsyncMode;
 exports.isConcurrentMode = isConcurrentMode;
 exports.isContextConsumer = isContextConsumer;
@@ -3953,6 +3899,8 @@ exports.isPortal = isPortal;
 exports.isProfiler = isProfiler;
 exports.isStrictMode = isStrictMode;
 exports.isSuspense = isSuspense;
+exports.isValidElementType = isValidElementType;
+exports.typeOf = typeOf;
   })();
 }
 
@@ -6690,7 +6638,7 @@ var GitalkComponent = function (_Component) {
       _this.setState(function (state) {
         if (state.isCreating) return;
 
-        _this.createComment().then(function () {
+        _this.createComment(_this.accessToken).then(function () {
           return _this.setState({
             isCreating: false,
             isOccurError: false
@@ -6706,15 +6654,55 @@ var GitalkComponent = function (_Component) {
       });
     };
 
+    _this.handleAnonCommentCreate = function (e) {
+      if (!_this.state.comment.length) {
+        e && e.preventDefault();
+        return;
+      }
+      _this.setState({ isCreating: true });
+      _this.createAnonmouslyComment().then(function () {
+        return _this.setState({
+          isCreating: false,
+          isOccurError: false
+        });
+      }).catch(function (err) {
+        _this.setState({
+          isCreating: false,
+          isOccurError: true,
+          errorMsg: (0, _util.formatErrorMsg)(err)
+        });
+      });
+      // const token = this.anonToken
+      // if (!token) { 
+      //   console.log('anonymously access token is empty, please contact admin.')
+      //   return 
+      // }
+
+      // this.createComment(token)
+      //   .then(() => this.setState({
+      //     isCreating: false,
+      //     isOccurError: false
+      //   }))
+      //   .catch(err => {
+      //     this.setState({
+      //       isCreating: false,
+      //       isOccurError: true,
+      //       errorMsg: formatErrorMsg(err)
+      //     })
+      //   })
+    };
+
     _this.handleCommentPreview = function (e) {
       _this.setState({
         isPreview: !_this.state.isPreview
       });
 
+      var accessToken = _this.accessToken;
+
       _util.axiosGithub.post('/markdown', {
         text: _this.state.comment
       }, {
-        headers: _this.accessToken && { Authorization: 'token ' + _this.accessToken }
+        headers: { Authorization: 'token ' + accessToken }
       }).then(function (res) {
         _this.setState({
           previewHtml: res.data
@@ -6778,6 +6766,10 @@ var GitalkComponent = function (_Component) {
     };
 
     _this.options = (0, _assign2.default)({}, {
+      anonymous: {
+        enable: false,
+        api: ''
+      },
       id: window.location.href,
       number: -1,
       labels: ['Gitalk'],
@@ -6897,6 +6889,11 @@ var GitalkComponent = function (_Component) {
     value: function getUserInfo() {
       var _this3 = this;
 
+      if (!this.accessToken) {
+        return new _promise2.default(function (resolve) {
+          resolve();
+        });
+      }
       return _util.axiosGithub.get('/user', {
         headers: {
           Authorization: 'token ' + this.accessToken
@@ -6959,8 +6956,9 @@ var GitalkComponent = function (_Component) {
           clientID = _options2.clientID,
           clientSecret = _options2.clientSecret;
 
+      var url = '/repos/' + owner + '/' + repo + '/issues';
 
-      return _util.axiosGithub.get('/repos/' + owner + '/' + repo + '/issues', {
+      return _util.axiosGithub.get(url, {
         auth: {
           username: clientID,
           password: clientSecret
@@ -7047,7 +7045,7 @@ var GitalkComponent = function (_Component) {
     }
   }, {
     key: 'createComment',
-    value: function createComment() {
+    value: function createComment(accessToken) {
       var _this8 = this;
 
       var _state = this.state,
@@ -7062,7 +7060,7 @@ var GitalkComponent = function (_Component) {
         }, {
           headers: {
             Accept: 'application/vnd.github.v3.full+json',
-            Authorization: 'token ' + _this8.accessToken
+            Authorization: 'token ' + accessToken
           }
         });
       }).then(function (res) {
@@ -7074,6 +7072,38 @@ var GitalkComponent = function (_Component) {
       });
     }
   }, {
+    key: 'createAnonmouslyComment',
+    value: function createAnonmouslyComment() {
+      var _this9 = this;
+
+      var _state2 = this.state,
+          comment = _state2.comment,
+          localComments = _state2.localComments,
+          comments = _state2.comments;
+
+      return this.getIssue().then(function (issue) {
+        return _this9.submitAnonmouslyComment(issue.comments_url, comment);
+      }).then(function (res) {
+        _this9.setState({
+          comment: '',
+          comments: comments.concat(res.data),
+          localComments: localComments.concat(res.data)
+        });
+      });
+    }
+  }, {
+    key: 'submitAnonmouslyComment',
+    value: function submitAnonmouslyComment(postUrl, body) {
+      //use urlencode to avoid preflight request
+      var params = 'postUrl=' + encodeURIComponent(postUrl) + '&content=' + body;
+      var url = this.options.anonymous.api;
+      return _util.axiosGithub.post(url, params, {
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded'
+        }
+      });
+    }
+  }, {
     key: 'logout',
     value: function logout() {
       this.setState({ user: null });
@@ -7082,7 +7112,7 @@ var GitalkComponent = function (_Component) {
   }, {
     key: 'like',
     value: function like(comment) {
-      var _this9 = this;
+      var _this10 = this;
 
       var _options4 = this.options,
           owner = _options4.owner,
@@ -7118,7 +7148,7 @@ var GitalkComponent = function (_Component) {
           return c;
         });
 
-        _this9.setState({
+        _this10.setState({
           comments: comments
         });
       });
@@ -7126,7 +7156,7 @@ var GitalkComponent = function (_Component) {
   }, {
     key: 'unLike',
     value: function unLike(comment) {
-      var _this10 = this;
+      var _this11 = this;
 
       var user = this.state.user;
       var comments = this.state.comments;
@@ -7172,7 +7202,7 @@ var GitalkComponent = function (_Component) {
             return c;
           });
 
-          _this10.setState({
+          _this11.setState({
             comments: comments
           });
         }
@@ -7195,9 +7225,9 @@ var GitalkComponent = function (_Component) {
   }, {
     key: 'noInit',
     value: function noInit() {
-      var _state2 = this.state,
-          user = _state2.user,
-          isIssueCreating = _state2.isIssueCreating;
+      var _state3 = this.state,
+          user = _state3.user,
+          isIssueCreating = _state3.isIssueCreating;
       var _options5 = this.options,
           owner = _options5.owner,
           repo = _options5.repo,
@@ -7227,28 +7257,23 @@ var GitalkComponent = function (_Component) {
       );
     }
   }, {
-    key: 'handleImageErrored',
-    value: function handleImageErrored(obj) {
-      obj.target.src = "https://cdn.jsdelivr.net/npm/gitalk@1/src/assets/icon/github.svg";
-    }
-  }, {
     key: 'header',
     value: function header() {
-      var _this11 = this;
+      var _this12 = this;
 
-      var _state3 = this.state,
-          user = _state3.user,
-          comment = _state3.comment,
-          isCreating = _state3.isCreating,
-          previewHtml = _state3.previewHtml,
-          isPreview = _state3.isPreview;
+      var _state4 = this.state,
+          user = _state4.user,
+          comment = _state4.comment,
+          isCreating = _state4.isCreating,
+          previewHtml = _state4.previewHtml,
+          isPreview = _state4.isPreview;
 
       return _react2.default.createElement(
         'div',
         { className: 'gt-header', key: 'header' },
-        user ? _react2.default.createElement(_avatar2.default, { className: 'gt-header-avatar', src: user.avatar_url, alt: user.login, onError: this.handleImageErrored.bind(this) }) : _react2.default.createElement(
+        user ? _react2.default.createElement(_avatar2.default, { className: 'gt-header-avatar', src: user.avatar_url, alt: user.login }) : _react2.default.createElement(
           'a',
-          { className: 'gt-avatar-github', onMouseDown: this.handleLogin },
+          { className: 'gt-avatar-github', onClick: this.handleLogin },
           _react2.default.createElement(_svg2.default, { className: 'gt-ico-github', name: 'github' })
         ),
         _react2.default.createElement(
@@ -7256,7 +7281,7 @@ var GitalkComponent = function (_Component) {
           { className: 'gt-header-comment' },
           _react2.default.createElement('textarea', {
             ref: function ref(t) {
-              _this11.commentEL = t;
+              _this12.commentEL = t;
             },
             className: 'gt-header-textarea ' + (isPreview ? 'hide' : ''),
             value: comment,
@@ -7281,17 +7306,24 @@ var GitalkComponent = function (_Component) {
             user && _react2.default.createElement(_button2.default, {
               getRef: this.getRef,
               className: 'gt-btn-public',
-              onMouseDown: this.handleCommentCreate,
+              onClick: this.handleCommentCreate,
               text: this.i18n.t('comment'),
               isLoading: isCreating
             }),
-            _react2.default.createElement(_button2.default, {
+            this.accessToken && _react2.default.createElement(_button2.default, {
               className: 'gt-btn-preview',
-              onMouseDown: this.handleCommentPreview,
+              onClick: this.handleCommentPreview,
               text: isPreview ? this.i18n.t('edit') : this.i18n.t('preview')
               // isLoading={isPreviewing}
             }),
-            !user && _react2.default.createElement(_button2.default, { className: 'gt-btn-login', onMouseDown: this.handleLogin, text: this.i18n.t('login-with-github') })
+            this.options.anonymous.enable && _react2.default.createElement(_button2.default, {
+              getRef: this.getRef,
+              className: 'gt-btn-public',
+              onMouseDown: this.handleAnonCommentCreate,
+              text: this.i18n.t('anonymously-comment'),
+              isLoading: isCreating
+            }),
+            !user && _react2.default.createElement(_button2.default, { className: 'gt-btn-login', onClick: this.handleLogin, text: this.i18n.t('login-with-github') })
           )
         )
       );
@@ -7299,14 +7331,14 @@ var GitalkComponent = function (_Component) {
   }, {
     key: 'comments',
     value: function comments() {
-      var _this12 = this;
+      var _this13 = this;
 
-      var _state4 = this.state,
-          user = _state4.user,
-          comments = _state4.comments,
-          isLoadOver = _state4.isLoadOver,
-          isLoadMore = _state4.isLoadMore,
-          pagerDirection = _state4.pagerDirection;
+      var _state5 = this.state,
+          user = _state5.user,
+          comments = _state5.comments,
+          isLoadOver = _state5.isLoadOver,
+          isLoadMore = _state5.isLoadMore,
+          pagerDirection = _state5.pagerDirection;
       var _options6 = this.options,
           language = _options6.language,
           flipMoveOptions = _options6.flipMoveOptions,
@@ -7328,10 +7360,10 @@ var GitalkComponent = function (_Component) {
               key: c.id,
               user: user,
               language: language,
-              commentedText: _this12.i18n.t('commented'),
+              commentedText: _this13.i18n.t('commented'),
               admin: admin,
-              replyCallback: _this12.reply(c),
-              likeCallback: c.reactions && c.reactions.viewerHasReacted ? _this12.unLike.bind(_this12, c) : _this12.like.bind(_this12, c)
+              replyCallback: _this13.reply(c),
+              likeCallback: c.reactions && c.reactions.viewerHasReacted ? _this13.unLike.bind(_this13, c) : _this13.like.bind(_this13, c)
             });
           })
         ),
@@ -7350,12 +7382,12 @@ var GitalkComponent = function (_Component) {
   }, {
     key: 'meta',
     value: function meta() {
-      var _state5 = this.state,
-          user = _state5.user,
-          issue = _state5.issue,
-          isPopupVisible = _state5.isPopupVisible,
-          pagerDirection = _state5.pagerDirection,
-          localComments = _state5.localComments;
+      var _state6 = this.state,
+          user = _state6.user,
+          issue = _state6.issue,
+          isPopupVisible = _state6.isPopupVisible,
+          pagerDirection = _state6.pagerDirection,
+          localComments = _state6.localComments;
 
       var cnt = (issue && issue.comments) + localComments.length;
       var isDesc = pagerDirection === 'last';
@@ -7387,7 +7419,7 @@ var GitalkComponent = function (_Component) {
           user ? _react2.default.createElement(_action2.default, { className: 'gt-action-sortdesc' + (isDesc ? ' is--active' : ''), onClick: this.handleSort('last'), text: this.i18n.t('sort-desc') }) : null,
           user ? _react2.default.createElement(_action2.default, { className: 'gt-action-logout', onClick: this.handleLogout, text: this.i18n.t('logout') }) : _react2.default.createElement(
             'a',
-            { className: 'gt-action gt-action-login', onMouseDown: this.handleLogin },
+            { className: 'gt-action gt-action-login', onClick: this.handleLogin },
             this.i18n.t('login-with-github')
           ),
           _react2.default.createElement(
@@ -7433,12 +7465,12 @@ var GitalkComponent = function (_Component) {
   }, {
     key: 'render',
     value: function render() {
-      var _state6 = this.state,
-          isIniting = _state6.isIniting,
-          isNoInit = _state6.isNoInit,
-          isOccurError = _state6.isOccurError,
-          errorMsg = _state6.errorMsg,
-          isInputFocused = _state6.isInputFocused;
+      var _state7 = this.state,
+          isIniting = _state7.isIniting,
+          isNoInit = _state7.isNoInit,
+          isOccurError = _state7.isOccurError,
+          errorMsg = _state7.errorMsg,
+          isInputFocused = _state7.isInputFocused;
 
       return _react2.default.createElement(
         'div',
@@ -10910,43 +10942,43 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;//     (c) 2012 
 /* 153 */
 /***/ (function(module, exports) {
 
-module.exports = {"init":"Gitalk 加载中 ...","no-found-related":"未找到相关的 %{link} 进行评论","please-contact":"请联系 %{user} 初始化创建","init-issue":"初始化 Issue","leave-a-comment":"说点什么","preview":"预览","edit":"编辑","comment":"评论","support-markdown":"支持 Markdown 语法","login-with-github":"使用 GitHub 登录","first-comment-person":"来做第一个留言的人吧！","commented":"发表于","load-more":"加载更多","counts":"%{counts} 条评论","sort-asc":"从旧到新排序","sort-desc":"从新到旧排序","logout":"注销","anonymous":"未登录用户"}
+module.exports = {"init":"Gitalk 加载中 ...","no-found-related":"未找到相关的 %{link} 进行评论","please-contact":"请联系 %{user} 初始化创建","init-issue":"初始化 Issue","leave-a-comment":"说点什么","preview":"预览","edit":"编辑","comment":"评论","support-markdown":"支持 Markdown 语法","login-with-github":"使用 GitHub 登录","first-comment-person":"来做第一个留言的人吧！","commented":"发表于","load-more":"加载更多","counts":"%{counts} 条评论","sort-asc":"从旧到新排序","sort-desc":"从新到旧排序","logout":"注销","anonymous":"未登录用户","anonymously-comment":"匿名评论"}
 
 /***/ }),
 /* 154 */
 /***/ (function(module, exports) {
 
-module.exports = {"init":"Gitalk 載入中…","no-found-related":"未找到相關的 %{link}","please-contact":"請聯絡 %{user} 初始化評論","init-issue":"初始化 Issue","leave-a-comment":"寫點什麼","preview":"預覽","edit":"編輯","comment":"評論","support-markdown":"支援 Markdown 語法","login-with-github":"使用 GitHub 登入","first-comment-person":"成為首個留言的人吧！","commented":"評論於","load-more":"載入更多","counts":"%{counts} 筆評論","sort-asc":"從舊至新排序","sort-desc":"從新至舊排序","logout":"登出","anonymous":"訪客"}
+module.exports = {"init":"Gitalk 載入中…","no-found-related":"未找到相關的 %{link}","please-contact":"請聯絡 %{user} 初始化評論","init-issue":"初始化 Issue","leave-a-comment":"寫點什麼","preview":"預覽","edit":"編輯","comment":"評論","support-markdown":"支援 Markdown 語法","login-with-github":"使用 GitHub 登入","first-comment-person":"成為首個留言的人吧！","commented":"評論於","load-more":"載入更多","counts":"%{counts} 筆評論","sort-asc":"從舊至新排序","sort-desc":"從新至舊排序","logout":"登出","anonymous":"訪客","anonymously-comment":"匿名評論"}
 
 /***/ }),
 /* 155 */
 /***/ (function(module, exports) {
 
-module.exports = {"init":"Gitalking ...","no-found-related":"Related %{link} not found","please-contact":"Please contact %{user} to initialize the comment","init-issue":"Init Issue","leave-a-comment":"Leave a comment","preview":"Preview","edit":"Edit","comment":"Comment","support-markdown":"Markdown is supported","login-with-github":"Login with GitHub","first-comment-person":"Be the first person to leave a comment!","commented":"commented","load-more":"Load more","counts":"%{counts} comment |||| %{counts} comments","sort-asc":"Sort by Oldest","sort-desc":"Sort by Latest","logout":"Logout","anonymous":"Anonymous"}
+module.exports = {"init":"Gitalking ...","no-found-related":"Related %{link} not found","please-contact":"Please contact %{user} to initialize the comment","init-issue":"Init Issue","leave-a-comment":"Leave a comment","preview":"Preview","edit":"Edit","comment":"Comment","support-markdown":"Markdown is supported","login-with-github":"Login with GitHub","first-comment-person":"Be the first person to leave a comment!","commented":"commented","load-more":"Load more","counts":"%{counts} comment |||| %{counts} comments","sort-asc":"Sort by Oldest","sort-desc":"Sort by Latest","logout":"Logout","anonymous":"Anonymous","anonymously-comment":"anonymous"}
 
 /***/ }),
 /* 156 */
 /***/ (function(module, exports) {
 
-module.exports = {"init":"Gitalking ...","no-found-related":"Link %{link} no encontrado","please-contact":"Por favor contacta con %{user} para inicializar el comentario","init-issue":"Iniciar Issue","leave-a-comment":"Deja un comentario","preview":"Avance","edit":"Editar","comment":"Comentario","support-markdown":"Markdown es soportado","login-with-github":"Entrar con GitHub","first-comment-person":"Sé el primero en dejar un comentario!","commented":"comentó","load-more":"Cargar más","counts":"%{counts} comentario |||| %{counts} comentarios","sort-asc":"Ordenar por Antiguos","sort-desc":"Ordenar por Recientes","logout":"Salir","anonymous":"Anónimo"}
+module.exports = {"init":"Gitalking ...","no-found-related":"Link %{link} no encontrado","please-contact":"Por favor contacta con %{user} para inicializar el comentario","init-issue":"Iniciar Issue","leave-a-comment":"Deja un comentario","preview":"Avance","edit":"Editar","comment":"Comentario","support-markdown":"Markdown es soportado","login-with-github":"Entrar con GitHub","first-comment-person":"Sé el primero en dejar un comentario!","commented":"comentó","load-more":"Cargar más","counts":"%{counts} comentario |||| %{counts} comentarios","sort-asc":"Ordenar por Antiguos","sort-desc":"Ordenar por Recientes","logout":"Salir","anonymous":"Anónimo","anonymously-comment":"Anónimo"}
 
 /***/ }),
 /* 157 */
 /***/ (function(module, exports) {
 
-module.exports = {"init":"Gitalking ...","no-found-related":"Lien %{link} non trouvé","please-contact":"S’il vous plaît contactez %{user} pour initialiser les commentaires","init-issue":"Initialisation des issues","leave-a-comment":"Laisser un commentaire","preview":"Aperçu","edit":"Modifier","comment":"Commentaire","support-markdown":"Markdown est supporté","login-with-github":"Se connecter avec GitHub","first-comment-person":"Être le premier à laisser un commentaire !","commented":"commenter","load-more":"Charger plus","counts":"%{counts} commentaire |||| %{counts} commentaires","sort-asc":"Trier par plus ancien","sort-desc":"Trier par plus récent","logout":"Déconnexion","anonymous":"Anonyme"}
+module.exports = {"init":"Gitalking ...","no-found-related":"Lien %{link} non trouvé","please-contact":"S’il vous plaît contactez %{user} pour initialiser les commentaires","init-issue":"Initialisation des issues","leave-a-comment":"Laisser un commentaire","preview":"Aperçu","edit":"Modifier","comment":"Commentaire","support-markdown":"Markdown est supporté","login-with-github":"Se connecter avec GitHub","first-comment-person":"Être le premier à laisser un commentaire !","commented":"commenter","load-more":"Charger plus","counts":"%{counts} commentaire |||| %{counts} commentaires","sort-asc":"Trier par plus ancien","sort-desc":"Trier par plus récent","logout":"Déconnexion","anonymous":"Anonyme","anonymously-comment":"Anonyme"}
 
 /***/ }),
 /* 158 */
 /***/ (function(module, exports) {
 
-module.exports = {"init":"Gitalking ...","no-found-related":"Связанные %{link} не найдены","please-contact":"Пожалуйста, свяжитесь с %{user} чтобы инициализировать комментарий","init-issue":"Выпуск инициализации","leave-a-comment":"Оставить комментарий","preview":"Предварительный просмотр","edit":"Pедактировать","comment":"Комментарий","support-markdown":"Поддерживается Markdown","login-with-github":"Вход через GitHub","first-comment-person":"Будьте первым, кто оставил комментарий","commented":"прокомментированный","load-more":"Загрузить ещё","counts":"%{counts} комментарий |||| %{counts} комментарьев","sort-asc":"Сортировать по старым","sort-desc":"Сортировать по последним","logout":"Выход","anonymous":"Анонимный"}
+module.exports = {"init":"Gitalking ...","no-found-related":"Связанные %{link} не найдены","please-contact":"Пожалуйста, свяжитесь с %{user} чтобы инициализировать комментарий","init-issue":"Выпуск инициализации","leave-a-comment":"Оставить комментарий","preview":"Предварительный просмотр","edit":"Pедактировать","comment":"Комментарий","support-markdown":"Поддерживается Markdown","login-with-github":"Вход через GitHub","first-comment-person":"Будьте первым, кто оставил комментарий","commented":"прокомментированный","load-more":"Загрузить ещё","counts":"%{counts} комментарий |||| %{counts} комментарьев","sort-asc":"Сортировать по старым","sort-desc":"Сортировать по последним","logout":"Выход","anonymous":"Анонимный","anonymously-comment":"Анонимный"}
 
 /***/ }),
 /* 159 */
 /***/ (function(module, exports) {
 
-module.exports = {"init":"Gitalking ...","no-found-related":"Zugehöriger %{link} nicht gefunden","please-contact":"Bitte kontaktiere %{user} um den Kommentar zu initialisieren","init-issue":"Initialisiere Issue","leave-a-comment":"Hinterlasse einen Kommentar","preview":"Vorschau","edit":"Editieren","comment":"Kommentieren","support-markdown":"Markdown wird unterstützt","login-with-github":"Mit GitHub-Account anmelden","first-comment-person":"Sei die erste Person, welche einen Kommentar hinterlässt!","commented":"kommentierte","load-more":"Zeige mehr","counts":"%{counts} Kommentar |||| %{counts} Kommentare","sort-asc":"Älteste zuerst","sort-desc":"Neuste zuerst","logout":"Abmelden","anonymous":"Anonym"}
+module.exports = {"init":"Gitalking ...","no-found-related":"Zugehöriger %{link} nicht gefunden","please-contact":"Bitte kontaktiere %{user} um den Kommentar zu initialisieren","init-issue":"Initialisiere Issue","leave-a-comment":"Hinterlasse einen Kommentar","preview":"Vorschau","edit":"Editieren","comment":"Kommentieren","support-markdown":"Markdown wird unterstützt","login-with-github":"Mit GitHub-Account anmelden","first-comment-person":"Sei die erste Person, welche einen Kommentar hinterlässt!","commented":"kommentierte","load-more":"Zeige mehr","counts":"%{counts} Kommentar |||| %{counts} Kommentare","sort-asc":"Älteste zuerst","sort-desc":"Neuste zuerst","logout":"Abmelden","anonymous":"Anonym","anonymously-comment":"Anonym"}
 
 /***/ }),
 /* 160 */
@@ -12088,11 +12120,6 @@ var Comment = function (_Component) {
       }
     }
   }, {
-    key: 'handleImageErrored',
-    value: function handleImageErrored(obj) {
-      obj.target.src = "https://cdn.jsdelivr.net/npm/gitalk@1/src/assets/icon/github.svg";
-    }
-  }, {
     key: 'render',
     value: function render() {
       var _this2 = this;
@@ -12130,8 +12157,7 @@ var Comment = function (_Component) {
         _react2.default.createElement(_avatar2.default, {
           className: 'gt-comment-avatar',
           src: comment.user && comment.user.avatar_url,
-          alt: comment.user && comment.user.login,
-          onError: this.handleImageErrored.bind(this)
+          alt: comment.user && comment.user.login
         }),
         _react2.default.createElement(
           'div',

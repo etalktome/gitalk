@@ -47,9 +47,14 @@ class GitalkComponent extends Component {
     isOccurError: false,
     errorMsg: '',
   }
+
   constructor (props) {
     super(props)
     this.options = Object.assign({}, {
+      anonymous: {
+        enable: false,
+        api: ''
+      },
       id: window.location.href,
       number: -1,
       labels: ['Gitalk'],
@@ -225,9 +230,10 @@ class GitalkComponent extends Component {
     })
   }
   getIssueByLabels () {
-    const { owner, repo, id, labels, clientID, clientSecret } = this.options
+    let { owner, repo, id, labels, clientID, clientSecret } = this.options
+    const url = `/repos/${owner}/${repo}/issues`
 
-    return axiosGithub.get(`/repos/${owner}/${repo}/issues`, {
+    return axiosGithub.get(url, {
       auth: {
         username: clientID,
         password: clientSecret
@@ -330,8 +336,7 @@ class GitalkComponent extends Component {
     if (this.accessToken) return QLGetComments.call(this, issue)
     return this.getCommentsV3(issue)
   }
-
-  createComment () {
+  createComment (accessToken) {
     const { comment, localComments, comments } = this.state
 
     return this.getIssue()
@@ -340,7 +345,7 @@ class GitalkComponent extends Component {
       }, {
         headers: {
           Accept: 'application/vnd.github.v3.full+json',
-          Authorization: `token ${this.accessToken}`
+          Authorization: `token ${accessToken}`
         }
       }))
       .then(res => {
@@ -351,6 +356,31 @@ class GitalkComponent extends Component {
         })
       })
   }
+
+  createAnonmouslyComment() {
+    const { comment, localComments, comments } = this.state
+    return this.getIssue()
+          .then(issue => this.submitAnonmouslyComment(issue.comments_url,comment))
+          .then(res => {
+            this.setState({
+              comment: '',
+              comments: comments.concat(res.data),
+              localComments: localComments.concat(res.data)
+            })
+          })
+  }
+
+  submitAnonmouslyComment(postUrl,body) {
+    //use urlencode to avoid preflight request
+    const params = `postUrl=${encodeURIComponent(postUrl)}&content=${body}`
+    const url = this.options.anonymous.api
+    return axiosGithub.post(url,params,{
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded'
+      }
+    })
+  }
+
   logout () {
     this.setState({ user: null })
     window.localStorage.removeItem(GT_ACCESS_TOKEN)
@@ -521,7 +551,7 @@ class GitalkComponent extends Component {
     this.setState(state => {
       if (state.isCreating) return
 
-      this.createComment()
+      this.createComment(this.accessToken)
         .then(() => this.setState({
           isCreating: false,
           isOccurError: false
@@ -536,15 +566,55 @@ class GitalkComponent extends Component {
       return { isCreating: true }
     })
   }
+  
+  handleAnonCommentCreate = e => {
+    if (!this.state.comment.length) {
+      e && e.preventDefault()
+      return
+    }
+    this.setState({ isCreating: true })
+    this.createAnonmouslyComment()
+      .then(() => this.setState({
+        isCreating: false,
+        isOccurError: false
+      }))
+      .catch(err => {
+        this.setState({
+          isCreating: false,
+          isOccurError: true,
+          errorMsg: formatErrorMsg(err)
+        })
+      })
+    // const token = this.anonToken
+    // if (!token) { 
+    //   console.log('anonymously access token is empty, please contact admin.')
+    //   return 
+    // }
+
+    // this.createComment(token)
+    //   .then(() => this.setState({
+    //     isCreating: false,
+    //     isOccurError: false
+    //   }))
+    //   .catch(err => {
+    //     this.setState({
+    //       isCreating: false,
+    //       isOccurError: true,
+    //       errorMsg: formatErrorMsg(err)
+    //     })
+    //   })
+  }
   handleCommentPreview = e => {
     this.setState({
       isPreview: !this.state.isPreview
     })
 
+    let accessToken = this.accessToken;
+
     axiosGithub.post('/markdown', {
       text: this.state.comment
     }, {
-      headers: this.accessToken && { Authorization: `token ${this.accessToken}` }
+      headers: { Authorization: `token ${accessToken}` }
     }).then(res => {
       this.setState({
         previewHtml: res.data
@@ -650,12 +720,21 @@ class GitalkComponent extends Component {
               isLoading={isCreating}
             />}
 
-            <Button
+            {this.accessToken && <Button
               className="gt-btn-preview"
               onClick={this.handleCommentPreview}
               text={isPreview ? this.i18n.t('edit') : this.i18n.t('preview')}
               // isLoading={isPreviewing}
-            />
+            />}
+
+            {this.options.anonymous.enable && <Button
+              getRef={this.getRef}
+              className="gt-btn-public"
+              onMouseDown={this.handleAnonCommentCreate}
+              text={this.i18n.t('anonymously-comment')}
+              isLoading={isCreating}
+            />}
+
             {!user && <Button className="gt-btn-login" onClick={this.handleLogin} text={this.i18n.t('login-with-github')} />}
           </div>
         </div>

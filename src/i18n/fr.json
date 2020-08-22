@@ -16,5 +16,6 @@
   "sort-asc": "Trier par plus ancien",
   "sort-desc": "Trier par plus récent",
   "logout": "Déconnexion",
-  "anonymous": "Anonyme"
+  "anonymous": "Anonyme",
+  "anonymously-comment": "Anonyme"
 }

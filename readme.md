@@ -205,6 +205,17 @@ And use the component like
   Default: `true`.
 
   Enable hot key (cmd|ctrl + enter) submit comment.
+  
+- **server**`Object`
+
+  Default:
+
+  ```js
+  {
+    oauth_api: '', //use for oauth
+    anonymous_api: '' // use for anonymous comment
+  }
+  ```
 
 
 ## Instance Methods

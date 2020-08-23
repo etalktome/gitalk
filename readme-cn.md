@@ -98,6 +98,10 @@ import GitalkComponent from "gitalk/dist/gitalk-component";
 }} />
 ```
 
+### 
+
+
+
 ## 设置
 
 - **clientID** `String` 
@@ -205,6 +209,18 @@ import GitalkComponent from "gitalk/dist/gitalk-component";
   Default: `true`.
 
   启用快捷键(cmd|ctrl + enter) 提交评论.
+  
+- **server**`Object`
+
+  Default:
+
+  ```js
+  {
+    oauth_api: '', //use for oauth
+    anonymous_api: '' // use for anonymous comment
+  }
+  ```
+这个对原本项目有一些改动，把client_id和client_secret放到了服务端，同时支持匿名评论。
 
 
 ## 实例方法

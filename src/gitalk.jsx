@@ -51,9 +51,9 @@ class GitalkComponent extends Component {
   constructor (props) {
     super(props)
     this.options = Object.assign({}, {
-      anonymous: {
-        enable: false,
-        api: ''
+      server: {
+        oauth_api: '',
+        anonymous_api: ''
       },
       id: window.location.href,
       number: -1,
@@ -65,7 +65,7 @@ class GitalkComponent extends Component {
       pagerDirection: 'last', // last or first
       createIssueManually: false,
       distractionFreeMode: false,
-      proxy: 'https://cors-anywhere.herokuapp.com/https://github.com/login/oauth/access_token',
+      proxy: 'https://cors-anywhere.herokuapp.com/https://github.com/login/oauth/access_token', //deprecated
       flipMoveOptions: {
         staggerDelayBy: 150,
         appearAnimation: 'accordionVertical',
@@ -93,61 +93,23 @@ class GitalkComponent extends Component {
     }
 
     const query = queryParse()
-    if (query.code) {
-      const code = query.code
-      delete query.code
+    if (query.access_token) {
+      this.accessToken = query.access_token
+      delete query.access_token
       const replacedUrl = `${window.location.origin}${window.location.pathname}${queryStringify(query)}${window.location.hash}`
-      history.replaceState(null, null, replacedUrl)
-      this.options = Object.assign({}, this.options, {
-        url: replacedUrl,
-        id: replacedUrl
-      }, props.options)
+      history.replaceState(null,null,replacedUrl)
+    }
 
-      axiosJSON.post(this.options.proxy, {
-        code,
-        client_id: this.options.clientID,
-        client_secret: this.options.clientSecret
-      }).then(res => {
-        if (res.data && res.data.access_token) {
-          this.accessToken = res.data.access_token
-
-          this.getInit()
-            .then(() => this.setState({ isIniting: false }))
-            .catch(err => {
-              console.log('err:', err)
-              this.setState({
-                isIniting: false,
-                isOccurError: true,
-                errorMsg: formatErrorMsg(err)
-              })
-            })
-        } else {
-          // no access_token
-          console.log('res.data err:', res.data)
-          this.setState({
-            isOccurError: true,
-            errorMsg: formatErrorMsg(new Error('no access token'))
-          })
-        }
-      }).catch(err => {
-        console.log('err: ', err)
+    this.getInit()
+      .then(() => this.setState({ isIniting: false }))
+      .catch(err => {
+        console.log('err:', err)
         this.setState({
+          isIniting: false,
           isOccurError: true,
           errorMsg: formatErrorMsg(err)
         })
       })
-    } else {
-      this.getInit()
-        .then(() => this.setState({ isIniting: false }))
-        .catch(err => {
-          console.log('err:', err)
-          this.setState({
-            isIniting: false,
-            isOccurError: true,
-            errorMsg: formatErrorMsg(err)
-          })
-        })
-    }
 
     this.i18n = i18n(this.options.language)
   }
@@ -163,12 +125,9 @@ class GitalkComponent extends Component {
     this._accessToken = token
   }
   get loginLink () {
-    const githubOauthUrl = 'https://github.com/login/oauth/authorize'
-    const { clientID } = this.options
+    const githubOauthUrl = this.options.server.oauth_api
     const query = {
-      client_id: clientID,
-      redirect_uri: window.location.href,
-      scope: 'public_repo'
+      origin: window.location.href
     }
     return `${githubOauthUrl}?${queryStringify(query)}`
   }
@@ -204,10 +163,10 @@ class GitalkComponent extends Component {
 
     return new Promise((resolve, reject) => {
       axiosGithub.get(getUrl, {
-        auth: {
-          username: clientID,
-          password: clientSecret
-        },
+        // auth: {
+        //   username: clientID,
+        //   password: clientSecret
+        // },
         params: {
           t: Date.now()
         }
@@ -234,10 +193,10 @@ class GitalkComponent extends Component {
     const url = `/repos/${owner}/${repo}/issues`
 
     return axiosGithub.get(url, {
-      auth: {
-        username: clientID,
-        password: clientSecret
-      },
+      // auth: {
+      //   username: clientID,
+      //   password: clientSecret
+      // },
       params: {
         labels: labels.concat(id).join(','),
         t: Date.now()
@@ -306,13 +265,15 @@ class GitalkComponent extends Component {
           headers: {
             Accept: 'application/vnd.github.v3.full+json'
           },
-          auth: {
-            username: clientID,
-            password: clientSecret
-          },
+          // auth: {
+          //   username: clientID,
+          //   password: clientSecret
+          // },
           params: {
             per_page: perPage,
-            page
+            page,
+            sort: 'comments',
+            direction: this.state.pagerDirection === 'last' ? 'asc' : 'desc'
           }
         }).then(res => {
           const { comments, issue } = this.state
@@ -373,7 +334,7 @@ class GitalkComponent extends Component {
   submitAnonmouslyComment(postUrl,body) {
     //use urlencode to avoid preflight request
     const params = `postUrl=${encodeURIComponent(postUrl)}&content=${body}`
-    const url = this.options.anonymous.api
+    const url = this.options.server.anonymous_api
     return axiosGithub.post(url,params,{
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded'
@@ -648,7 +609,7 @@ class GitalkComponent extends Component {
     this.setState({ isInputFocused: false })
   }
   handleSort = direction => e => {
-    this.setState({ pagerDirection: direction })
+    this.setState({pagerDirection: direction})
   }
   handleCommentKeyDown = e => {
     const { enableHotKey } = this.options
@@ -727,7 +688,7 @@ class GitalkComponent extends Component {
               // isLoading={isPreviewing}
             />}
 
-            {this.options.anonymous.enable && <Button
+            {this.options.server.anonymous_api && <Button
               getRef={this.getRef}
               className="gt-btn-public"
               onMouseDown={this.handleAnonCommentCreate}
@@ -745,12 +706,12 @@ class GitalkComponent extends Component {
     const { user, comments, isLoadOver, isLoadMore, pagerDirection } = this.state
     const { language, flipMoveOptions, admin } = this.options
     const totalComments = comments.concat([])
-    if (pagerDirection === 'last' && this.accessToken) {
-      totalComments.reverse()
-    }
+    // if (pagerDirection === 'last' && this.accessToken) {
+    //   totalComments.reverse()
+    // }
     return (
       <div className="gt-comments" key="comments">
-        <FlipMove {...flipMoveOptions}>
+        {/* <FlipMove {...flipMoveOptions}> */}
           {totalComments.map(c => (
             <Comment
               comment={c}
@@ -763,7 +724,7 @@ class GitalkComponent extends Component {
               likeCallback={c.reactions && c.reactions.viewerHasReacted ? this.unLike.bind(this, c) : this.like.bind(this, c)}
             />
           ))}
-        </FlipMove>
+        {/* </FlipMove> */}
         {!totalComments.length && <p className="gt-comments-null">{this.i18n.t('first-comment-person')}</p>}
         {(!isLoadOver && totalComments.length) ? <div className="gt-comments-controls">
           <Button className="gt-btn-loadmore" onClick={this.handleCommentLoad} isLoading={isLoadMore} text={this.i18n.t('load-more')} />

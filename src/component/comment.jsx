@@ -59,7 +59,12 @@ export default class Comment extends Component {
 
       let name = result[1]
       if (name) {
-        return name.trim()
+        name = name.trim()
+        if (name.length > 10) {
+          name = name.substring(0,10) + '...'
+        }
+
+        return name
       }
     } catch(err) {
       return defaultName

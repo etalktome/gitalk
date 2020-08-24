@@ -55,6 +55,9 @@ class GitalkComponent extends Component {
         oauth_api: '',
         anonymous_api: ''
       },
+      anonymous: {
+        accountName: '', //will replace to anonymous
+      },
       id: window.location.href,
       number: -1,
       labels: ['Gitalk'],
@@ -704,7 +707,7 @@ class GitalkComponent extends Component {
   }
   comments () {
     const { user, comments, isLoadOver, isLoadMore, pagerDirection } = this.state
-    const { language, flipMoveOptions, admin } = this.options
+    const { language, flipMoveOptions, admin,anonymous } = this.options
     const totalComments = comments.concat([])
     // if (pagerDirection === 'last' && this.accessToken) {
     //   totalComments.reverse()
@@ -722,6 +725,7 @@ class GitalkComponent extends Component {
               admin={admin}
               replyCallback={this.reply(c)}
               likeCallback={c.reactions && c.reactions.viewerHasReacted ? this.unLike.bind(this, c) : this.like.bind(this, c)}
+              anonymous={anonymous}
             />
           ))}
         {/* </FlipMove> */}
@@ -754,7 +758,7 @@ class GitalkComponent extends Component {
       <div className="gt-meta" key="meta" >
         <span className="gt-counts" dangerouslySetInnerHTML={{
           __html: this.i18n.t('counts', {
-            counts: `<a class="gt-link gt-link-counts" href="${issue && issue.html_url}" target="_blank">${cnt}</a>`,
+            counts: `<a class="gt-link gt-link-counts">${cnt}</a>`,
             smart_count: cnt
           })
         }}/>

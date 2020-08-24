@@ -8,6 +8,7 @@ import buildDistanceInWordsLocaleES from 'date-fns/locale/es/build_distance_in_w
 import buildDistanceInWordsLocaleFR from 'date-fns/locale/fr/build_distance_in_words_locale/index'
 import buildDistanceInWordsLocaleRU from 'date-fns/locale/ru/build_distance_in_words_locale/index'
 import 'github-markdown-css/github-markdown.css'
+import i18n from '../i18n'
 
 const ZHCN = buildDistanceInWordsLocaleZHCN()
 const ZHTW = buildDistanceInWordsLocaleZHTW()
@@ -43,6 +44,55 @@ export default class Comment extends Component {
     }
   }
 
+  getLoginName(comment) {
+    const { accountName } = this.props.anonymous
+    const username = comment.user.login
+    if (accountName !== username) {
+      return comment.user.login
+    }
+
+    try {
+      const defaultName = this.i18n.t('anonymously-comment')
+      let content = comment.body.split('\n')[0]
+      const result = content.match('<!--(.*)-->')
+      if (!result) { return defaultName }
+
+      let name = result[1]
+      if (name) {
+        return name.trim()
+      }
+    } catch(err) {
+      return defaultName
+    }
+
+    return defaultName
+  }
+
+  getCommentContent(comment) {
+    const { accountName } = this.props.anonymous
+    const username = comment.user.login
+    if (accountName !== username) {
+      return comment.body_html
+    }
+
+    let content = comment.body_html
+    if (content.indexOf('<blockquote>') !== 0) {
+      return content
+    }
+
+    const reg = new RegExp(`<a[^>]*>@${comment.user.login}<\/a><br>`, 'gi');
+    content = content.replace(reg,'')
+
+    return content
+  }
+
+  isAnonymousComment(comment) {
+    const { accountName } = this.props.anonymous
+    const username = comment.user.login
+
+    return accountName === username
+  }
+
   render () {
     const {
       comment,
@@ -59,7 +109,7 @@ export default class Comment extends Component {
       .map(a => a.toLowerCase())
       .indexOf(comment.user.login.toLowerCase())
     const reactions = comment.reactions
-
+    this.i18n = i18n(language)
     let reactionTotalCount = ''
     if (reactions && reactions.totalCount) {
       reactionTotalCount = reactions.totalCount
@@ -85,9 +135,10 @@ export default class Comment extends Component {
             <div className={`gt-comment-block-${user ? '2' : '1'}`} />
             <a
               className="gt-comment-username"
-              href={comment.user && comment.user.html_url}
+              href={!this.isAnonymousComment(comment) && comment.user && comment.user.html_url}
             >
-              {comment.user && comment.user.login}
+              {/* {comment.user && comment.user.login} */}
+              {comment.user && this.getLoginName(comment)}
             </a>
             <span className="gt-comment-text">{commentedText}</span>
             <span className="gt-comment-date">
@@ -136,7 +187,7 @@ export default class Comment extends Component {
           <div
             className="gt-comment-body markdown-body"
             dangerouslySetInnerHTML={{
-              __html: comment.body_html
+              __html: this.getCommentContent(comment)
             }}
           />
         </div>

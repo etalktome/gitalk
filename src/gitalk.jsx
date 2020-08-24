@@ -573,12 +573,14 @@ class GitalkComponent extends Component {
       isPreview: !this.state.isPreview
     })
 
-    let accessToken = this.accessToken;
-
+    // let accessToken = this.accessToken;
     axiosGithub.post('/markdown', {
       text: this.state.comment
     }, {
-      headers: { Authorization: `token ${accessToken}` }
+      headers: { 
+        Accept: "application/vnd.github.v3+json",
+        'Content-Type': 'application/json'
+      }
     }).then(res => {
       this.setState({
         previewHtml: res.data
@@ -676,19 +678,13 @@ class GitalkComponent extends Component {
             <a className="gt-header-controls-tip" href="https://guides.github.com/features/mastering-markdown/" target="_blank">
               <Svg className="gt-ico-tip" name="tip" text={this.i18n.t('support-markdown')}/>
             </a>
+
             {user && <Button
               getRef={this.getRef}
               className="gt-btn-public"
               onClick={this.handleCommentCreate}
               text={this.i18n.t('comment')}
               isLoading={isCreating}
-            />}
-
-            {this.accessToken && <Button
-              className="gt-btn-preview"
-              onClick={this.handleCommentPreview}
-              text={isPreview ? this.i18n.t('edit') : this.i18n.t('preview')}
-              // isLoading={isPreviewing}
             />}
 
             {this.options.server.anonymous_api && <Button
@@ -698,6 +694,14 @@ class GitalkComponent extends Component {
               text={this.i18n.t('anonymously-comment')}
               isLoading={isCreating}
             />}
+
+            {<Button
+              className="gt-btn-preview"
+              onClick={this.handleCommentPreview}
+              text={isPreview ? this.i18n.t('edit') : this.i18n.t('preview')}
+              // isLoading={isPreviewing}
+            />}
+
 
             {!user && <Button className="gt-btn-login" onClick={this.handleLogin} text={this.i18n.t('login-with-github')} />}
           </div>

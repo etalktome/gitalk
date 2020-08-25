@@ -19,10 +19,10 @@ function buildCacheKey(conf) {
 
   let key =`${conf.url}?${queryStringify(params)}`
   if (key.includes("http://") || key.includes("https://")) {
-    return key
+    return key.replace(conf.baseURL,'')
   }
 
-  return conf.baseURL + key
+  return key
 }
 
 webClient.interceptors.request.use(config => {

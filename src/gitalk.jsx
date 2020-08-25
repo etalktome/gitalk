@@ -351,7 +351,7 @@ class GitalkComponent extends Component {
     let commentsUrl = ''
     return this.getIssue()
       .then(issue => {
-        commentsUrl = issue.comments_url
+        commentsUrl = issue.comments_url.replace('https://api.github.com','')
         axiosGithub.post(issue.comments_url, {
           body: comment
         }, {
@@ -397,7 +397,8 @@ class GitalkComponent extends Component {
         'Content-Type': 'application/x-www-form-urlencoded'
       }
     }).then(res => {
-      cache.removeByPrefix(postUrl)
+      const keyPrefix = postUrl.replace('https://api.github.com','')
+      cache.removeByPrefix(keyPrefix)
       return Promise.resolve(res)
     })
   }

@@ -15,6 +15,7 @@ export default {
 		if (data) {
 			try {
 				const cache = JSON.parse(data)
+				console.log(cache)
 				const epxire = cache.epxire || -1;
 				if (epxire === -1 || epxire >= (new Date().getTime() / 1000)) {
 					return cache.data

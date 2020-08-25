@@ -90,7 +90,7 @@ class GitalkComponent extends Component {
       pagerDirection: 'last', // last or first
       createIssueManually: false,
       distractionFreeMode: false,
-      proxy: 'https://cors-anywhere.herokuapp.com/https://github.com/login/oauth/access_token', //deprecated
+      proxy: '',
       flipMoveOptions: {
         staggerDelayBy: 150,
         appearAnimation: 'accordionVertical',
@@ -116,6 +116,8 @@ class GitalkComponent extends Component {
       this.state.comment = decodeURIComponent(storedComment)
       window.localStorage.removeItem(GT_COMMENT)
     }
+
+    window.GT_PROXY = this.options.proxy
 
     const query = queryParse()
     if (query.access_token) {
@@ -313,7 +315,8 @@ class GitalkComponent extends Component {
           let isLoadOver = false
           const listComments = res.data
           const cs = comments.concat(listComments)
-          if (listComments.length === 0 || listComments.length < perPage) {
+          const length = listComments.length || 0
+          if (length === 0 || length < perPage) {
             isLoadOver = true
             updateCommentCount(cs.length)
           }

@@ -27,29 +27,38 @@ function buildCacheKey(conf) {
 
 webClient.interceptors.request.use(config => {
   const conf = Object.assign({cache: { enable: true }},config)
-  if (conf.method.toLocaleLowerCase() === 'get') {
-    if (conf.cache.enable) {
-      const cacheKey = buildCacheKey(conf)
-      const cacheData = cache.fetch(cacheKey)
-      if (cacheData) {
-        let source = axios.CancelToken.source()
-        conf.cancelToken = source.token
-
-        source.cancel({data: cacheData})
-        return conf
-      }
-    }
-  }
-  
   const accessToken = localStorage.getItem(GT_ACCESS_TOKEN)
   const headers = conf.headers
   if (headers) {
-    if (!headers['Authorization'] && accessToken) {
-      headers['Authorization'] = `token ${accessToken}`
+    if (!headers['Authorization']) {
+      if (accessToken) {
+        headers['Authorization'] = `token ${accessToken}`
+      } else {
+        if (window.GT_PROXY) {
+          conf.baseURL = window.GT_PROXY
+          if (conf.url.startsWith("https://api.github.com")) {
+            conf.url = conf.url.replace('https://api.github.com',conf.baseURL)
+          }
+        }
+      }
     }
 
     if (!headers['Accept']) {
       headers['Accept'] = 'application/vnd.github.v3.full+json'
+    }
+
+    if (conf.method.toLocaleLowerCase() === 'get') {
+      if (conf.cache.enable) {
+        const cacheKey = buildCacheKey(conf)
+        const cacheData = cache.fetch(cacheKey)
+        if (cacheData) {
+          let source = axios.CancelToken.source()
+          conf.cancelToken = source.token
+
+          source.cancel({data: cacheData})
+          return conf
+        }
+      }
     }
   }
 
@@ -72,10 +81,11 @@ webClient.interceptors.response.use(res => {
   return res
 }, err => {
   if (axios.isCancel(err)) {
-    return Promise.resolve(err.message)
+    // return Promise.resolve(err.message)
+    return new Promise(resolve => setTimeout(() => resolve(err.message), 200));
   }
 
-  return err
+  return Promise.reject(err)
 })
 
 export const client = webClient;

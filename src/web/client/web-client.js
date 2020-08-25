@@ -17,7 +17,12 @@ function buildCacheKey(conf) {
     delete params.t
   }
 
-  return`${conf.url}?${queryStringify(params)}`
+  let key =`${conf.url}?${queryStringify(params)}`
+  if (key.includes("http://") || key.includes("https://")) {
+    return key
+  }
+
+  return conf.baseURL + key
 }
 
 webClient.interceptors.request.use(config => {

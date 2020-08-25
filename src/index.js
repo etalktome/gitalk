@@ -3,6 +3,21 @@ import { render } from 'react-dom'
 import 'es6-promise/auto'
 import GitalkComponent from './gitalk'
 
+window.GT_CACHE = {
+  comments: {
+    enable: true,
+    ttl: 600
+  },
+  userInfo: {
+    enable: true,
+    ttl: 3600
+  },
+  issue: {
+    enable: true,
+    ttl: -1
+  }
+}
+
 class Gitalk {
   constructor (options = {}) {
     this.options = options

@@ -2,13 +2,13 @@ import React, { Component } from 'react'
 import FlipMove from 'react-flip-move'
 import autosize from 'autosize'
 import { client } from './web/client/web-client'
+import cache from './web/cache'
 
 import i18n from './i18n'
 import './style/index.styl'
 import {
   queryParse,
   queryStringify,
-  axiosJSON,
   getMetaContent,
   formatErrorMsg,
   hasClassInParent
@@ -117,25 +117,6 @@ class GitalkComponent extends Component {
       })
 
     this.i18n = i18n(this.options.language)
-    // this.test();
-  }
-
-  test() {
-    client.get('http://localhost:3000/api/comment', {
-      headers: {
-        Authorization: `token ${this.accessToken}`
-      },
-      params: {
-        test: 111,
-        user: 'kkk'
-      }
-    }).then(res => {
-      console.log("===success===")
-      console.log(res)
-    }).catch(err => {
-      console.log('====err==')
-      console.log(err)
-    })
   }
 
   componentDidUpdate () {
@@ -176,10 +157,7 @@ class GitalkComponent extends Component {
       headers: {
         Authorization: `token ${this.accessToken}`
       },
-      cache: {
-        enable: true,
-        ttl: 3600
-      }
+      cache: window.GT_CACHE.userInfo || {enable: true,ttl: 3600}
     }).then(res => {
       this.setState({ user: res.data })
     }).catch(err => {
@@ -194,7 +172,8 @@ class GitalkComponent extends Component {
       axiosGithub.get(getUrl, {
         params: {
           t: Date.now()
-        }
+        },
+        cache: window.GT_CACHE.issue || {enable: true,ttl: -1}
       })
         .then(res => {
           let issue = null
@@ -221,7 +200,8 @@ class GitalkComponent extends Component {
       params: {
         labels: labels.concat(id).join(','),
         t: Date.now()
-      }
+      },
+      cache: window.GT_CACHE.issue || {enable: true,ttl: -1}
     }).then(res => {
       const { createIssueManually } = this.options
       let isNoInit = false
@@ -291,10 +271,7 @@ class GitalkComponent extends Component {
             sort: 'comments',
             direction: this.state.pagerDirection === 'last' ? 'asc' : 'desc'
           },
-          cache: {
-            enable: true,
-            ttl: 600 //sec
-          }
+          cache: window.GT_CACHE.comments || {enable: true, ttl: 600}
         }).then(res => {
           const { comments, issue } = this.state
           let isLoadOver = false
@@ -320,16 +297,23 @@ class GitalkComponent extends Component {
   createComment (accessToken) {
     const { comment, localComments, comments } = this.state
 
+    let commentsUrl = ''
     return this.getIssue()
-      .then(issue => axiosGithub.post(issue.comments_url, {
-        body: comment
-      }, {
-        headers: {
-          Accept: 'application/vnd.github.v3.full+json',
-          Authorization: `token ${accessToken}`
-        }
-      }))
+      .then(issue => {
+        commentsUrl = issue.comments_url
+        axiosGithub.post(issue.comments_url, {
+          body: comment
+        }, {
+          headers: {
+            Accept: 'application/vnd.github.v3.full+json',
+            Authorization: `token ${accessToken}`
+          }
+        })
+      })
       .then(res => {
+        if (commentsUrl) {
+          cache.removeByPrefix(commentsUrl)
+        }
         this.setState({
           comment: '',
           comments: comments.concat(res.data),
@@ -359,6 +343,9 @@ class GitalkComponent extends Component {
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded'
       }
+    }).then(res => {
+      cache.removeByPrefix(postUrl)
+      return Promise.resolve(res)
     })
   }
 

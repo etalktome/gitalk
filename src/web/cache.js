@@ -28,5 +28,17 @@ export default {
 		}
 
 		return undefined
+	},
+
+	removeByPrefix(keyPrefix) {
+		const arr = []
+
+		for (let i = 0; i < localStorage.length; i++){
+			if (localStorage.key(i).indexOf(keyPrefix) !== -1) {
+					arr.push(localStorage.key(i));
+			}
+		}
+
+		arr.forEach(key => localStorage.removeItem(key))
 	}
 }

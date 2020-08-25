@@ -47,7 +47,13 @@ export const parseBody = (comment,accountName) => {
 }
 
 export const getCommentCount = (defaultValue = 0) => {
-	return localStorage.getItem(GT_COMMENT_COUNT) || defaultValue
+	let count = defaultValue;
+	try {
+		count = parseInt(localStorage.getItem(GT_COMMENT_COUNT))
+	} catch(err) {
+	}
+
+	return count
 }
 
 export const updateCommentCount = (commentCount) => {

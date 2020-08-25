@@ -21,7 +21,12 @@ import Comment from './component/comment'
 import Svg from './component/svg'
 import { GT_ACCESS_TOKEN, GT_VERSION, GT_COMMENT,GT_ANONYMOUS_NAME } from './const'
 import QLGetComments from './graphql/getComments'
-import { getUsername,parseBody } from './utils/comment'
+import { 
+  getUsername,
+  parseBody,
+  getCommentCount,
+  updateCommentCount 
+} from './utils/comment'
 
 class GitalkComponent extends Component {
   state = {
@@ -247,18 +252,25 @@ class GitalkComponent extends Component {
   getIssue () {
     const { number } = this.options
     const { issue } = this.state
+
+    let result;
     if (issue) {
       this.setState({ isNoInit: false })
-      return Promise.resolve(issue)
+      result = Promise.resolve(issue)
     }
 
     if (typeof number === 'number' && number > 0) {
       return this.getIssueById().then(resIssue => {
         if (!resIssue) return this.getIssueByLabels()
-        return resIssue
+        result = Promise.resolve(resIssue)
       })
     }
-    return this.getIssueByLabels()
+    result = this.getIssueByLabels()
+
+    return result.then(data => {
+      updateCommentCount(data.comments)
+      return Promise.resolve(data)
+    })
   }
   createIssue () {
     const { owner, repo, title, body, id, labels, url } = this.options
@@ -300,10 +312,22 @@ class GitalkComponent extends Component {
         }).then(res => {
           const { comments, issue } = this.state
           let isLoadOver = false
-          const cs = comments.concat(res.data)
-          if (cs.length >= issue.comments || res.data.length < perPage) {
+          const listComments = res.data
+          const cs = comments.concat(listComments)
+          if (listComments.length === 0 || listComments.length < perPage) {
             isLoadOver = true
+            updateCommentCount(cs.length)
           }
+          
+          const count = cs.length
+          if (count > getCommentCount()) {
+            updateCommentCount(cs.length)
+          }
+
+          // invalid in cache mode
+          // if (cs.length >= issue.comments || res.data.length < perPage) {
+          //   isLoadOver = true
+          // }
           this.setState({
             comments: cs,
             isLoadOver,
@@ -339,6 +363,7 @@ class GitalkComponent extends Component {
         if (commentsUrl) {
           cache.removeByPrefix(commentsUrl)
         }
+        updateCommentCount(getCommentCount() + 1)
         this.setState({
           comment: '',
           comments: comments.concat(res.data),
@@ -352,6 +377,7 @@ class GitalkComponent extends Component {
     return this.getIssue()
           .then(issue => this.submitAnonmouslyComment(issue.comments_url,comment))
           .then(res => {
+            updateCommentCount(getCommentCount() + 1)
             this.setState({
               comment: '',
               comments: comments.concat(res.data),
@@ -782,21 +808,21 @@ class GitalkComponent extends Component {
   }
   meta () {
     const { user, issue, isPopupVisible, pagerDirection, localComments } = this.state
-    const cnt = (issue && issue.comments) + localComments.length
+    const cnt = getCommentCount()
     const isDesc = pagerDirection === 'last'
-    const { updateCountCallback } = this.options
+    // const { updateCountCallback } = this.options
 
-    // window.GITALK_COMMENTS_COUNT = cnt
-    if (
-      updateCountCallback &&
-      {}.toString.call(updateCountCallback) === '[object Function]'
-    ) {
-      try {
-        updateCountCallback(cnt)
-      } catch (err) {
-        console.log('An error occurred executing the updateCountCallback:', err)
-      }
-    }
+    // // window.GITALK_COMMENTS_COUNT = cnt
+    // if (
+    //   updateCountCallback &&
+    //   {}.toString.call(updateCountCallback) === '[object Function]'
+    // ) {
+    //   try {
+    //     updateCountCallback(cnt)
+    //   } catch (err) {
+    //     console.log('An error occurred executing the updateCountCallback:', err)
+    //   }
+    // }
 
     return (
       <div className="gt-meta" key="meta" >

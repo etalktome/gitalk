@@ -1,7 +1,8 @@
 
 export default {
 	save(key,value,ttl=-1) {
-		if (!key || !value) { return }
+		if (!key || !value || Object.keys(value) <= 0) { return }
+
 		const cache = {
 			data: value,
 			epxire: ttl <= 0 ? -1 : parseInt(new Date().getTime() / 1000 + ttl)

@@ -1,3 +1,5 @@
+import { GT_COMMENT_COUNT } from '../const'
+
 export const getUsername = (comment,anonymous,i18n) => {
 	const { accountName } = anonymous
 	const username = comment.user.login
@@ -42,4 +44,15 @@ export const parseBody = (comment,accountName) => {
 	arr.shift()
 
 	return arr.join('\n')
+}
+
+export const getCommentCount = (defaultValue = 0) => {
+	return localStorage.getItem(GT_COMMENT_COUNT) || defaultValue
+}
+
+export const updateCommentCount = (commentCount) => {
+	let count = getCommentCount()
+	if (count >= commentCount) { return }
+
+	localStorage.setItem(GT_COMMENT_COUNT,commentCount)
 }

@@ -1,6 +1,7 @@
 import React, { Component } from 'react'
 import FlipMove from 'react-flip-move'
 import autosize from 'autosize'
+import { client } from './web/client/web-client'
 
 import i18n from './i18n'
 import './style/index.styl'
@@ -8,11 +9,12 @@ import {
   queryParse,
   queryStringify,
   axiosJSON,
-  axiosGithub,
   getMetaContent,
   formatErrorMsg,
   hasClassInParent
 } from './util'
+
+import { client as axiosGithub } from './web/client/web-client'
 import Avatar from './component/avatar'
 import Button from './component/button'
 import Action from './component/action'
@@ -115,7 +117,27 @@ class GitalkComponent extends Component {
       })
 
     this.i18n = i18n(this.options.language)
+    // this.test();
   }
+
+  test() {
+    client.get('http://localhost:3000/api/comment', {
+      headers: {
+        Authorization: `token ${this.accessToken}`
+      },
+      params: {
+        test: 111,
+        user: 'kkk'
+      }
+    }).then(res => {
+      console.log("===success===")
+      console.log(res)
+    }).catch(err => {
+      console.log('====err==')
+      console.log(err)
+    })
+  }
+
   componentDidUpdate () {
     this.commentEL && autosize(this.commentEL)
   }
@@ -153,6 +175,10 @@ class GitalkComponent extends Component {
     return axiosGithub.get('/user', {
       headers: {
         Authorization: `token ${this.accessToken}`
+      },
+      cache: {
+        enable: true,
+        ttl: 3600
       }
     }).then(res => {
       this.setState({ user: res.data })
@@ -166,10 +192,6 @@ class GitalkComponent extends Component {
 
     return new Promise((resolve, reject) => {
       axiosGithub.get(getUrl, {
-        // auth: {
-        //   username: clientID,
-        //   password: clientSecret
-        // },
         params: {
           t: Date.now()
         }
@@ -196,10 +218,6 @@ class GitalkComponent extends Component {
     const url = `/repos/${owner}/${repo}/issues`
 
     return axiosGithub.get(url, {
-      // auth: {
-      //   username: clientID,
-      //   password: clientSecret
-      // },
       params: {
         labels: labels.concat(id).join(','),
         t: Date.now()
@@ -263,20 +281,19 @@ class GitalkComponent extends Component {
     return this.getIssue()
       .then(issue => {
         if (!issue) return
-
         return axiosGithub.get(issue.comments_url, {
           headers: {
             Accept: 'application/vnd.github.v3.full+json'
           },
-          // auth: {
-          //   username: clientID,
-          //   password: clientSecret
-          // },
           params: {
             per_page: perPage,
             page,
             sort: 'comments',
             direction: this.state.pagerDirection === 'last' ? 'asc' : 'desc'
+          },
+          cache: {
+            enable: true,
+            ttl: 600 //sec
           }
         }).then(res => {
           const { comments, issue } = this.state
@@ -652,7 +669,8 @@ class GitalkComponent extends Component {
   header () {
     const { user, comment, isCreating, previewHtml, isPreview } = this.state
     return (
-      <div className="gt-header" key="header">
+      <div>
+        <div className="gt-header" key="header">
         {user ?
           <Avatar className="gt-header-avatar" src={user.avatar_url} alt={user.login} /> :
           <a className="gt-avatar-github" onClick={this.handleLogin}>
@@ -706,6 +724,7 @@ class GitalkComponent extends Component {
             {!user && <Button className="gt-btn-login" onClick={this.handleLogin} text={this.i18n.t('login-with-github')} />}
           </div>
         </div>
+      </div>
       </div>
     )
   }

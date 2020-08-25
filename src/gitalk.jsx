@@ -340,7 +340,7 @@ class GitalkComponent extends Component {
   getComments (issue) {
     if (!issue) return
     // Get comments via v4 graphql api, login required and sorting feature is available
-    if (this.accessToken) return QLGetComments.call(this, issue)
+    // if (this.accessToken) return QLGetComments.call(this, issue)
     return this.getCommentsV3(issue)
   }
   createComment (accessToken) {
@@ -416,12 +416,15 @@ class GitalkComponent extends Component {
     let replyCommentArray = replyCommentBody.split('\n')
     replyCommentArray = replyCommentArray.map(t => `> ${t}`)
 
+    let author = ''
     if (accountName !== username) {
-      replyCommentArray.unshift(`> @${replyComment.user.login}`)
+      author = replyComment.user.login
     } else {
-      const name = `> Author: ${getUsername(replyComment,this.options.anonymous,this.i18n)}   `
-      replyCommentArray.unshift(name)
+      author = getUsername(replyComment,this.options.anonymous,this.i18n)
     }
+
+    author = `> [at: ${author}](#${replyComment.id})   `
+    replyCommentArray.unshift(author)
 
     replyCommentArray.push('')
     replyCommentArray.push('')

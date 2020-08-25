@@ -45,35 +45,6 @@ export default class Comment extends Component {
     }
   }
 
-  // getLoginName(comment) {
-  //   const { accountName } = this.props.anonymous
-  //   const username = comment.user.login
-  //   if (accountName !== username) {
-  //     return comment.user.login
-  //   }
-
-  //   try {
-  //     const defaultName = this.i18n.t('anonymously-comment')
-  //     let content = comment.body.split('\n')[0]
-  //     const result = content.match('<!--(.*)-->')
-  //     if (!result) { return defaultName }
-
-  //     let name = result[1]
-  //     if (name) {
-  //       name = name.trim()
-  //       if (name.length > 10) {
-  //         name = name.substring(0,10) + '...'
-  //       }
-
-  //       return name
-  //     }
-  //   } catch(err) {
-  //     return defaultName
-  //   }
-
-  //   return defaultName
-  // }
-
   getCommentContent(comment) {
     const { accountName } = this.props.anonymous
     const username = comment.user.login
@@ -140,6 +111,7 @@ export default class Comment extends Component {
           <div className="gt-comment-header">
             <div className={`gt-comment-block-${user ? '2' : '1'}`} />
             <a
+              id={comment.id}
               className="gt-comment-username"
               href={!this.isAnonymousComment(comment) && comment.user && comment.user.html_url}
             >

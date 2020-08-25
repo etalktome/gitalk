@@ -15,8 +15,8 @@ export default {
 		if (data) {
 			try {
 				const cache = JSON.parse(data)
-				const ttl = cache.ttl || -1;
-				if (ttl === -1 || ttl >= (new Date().getTime() / 1000)) {
+				const epxire = cache.epxire || -1;
+				if (epxire === -1 || epxire >= (new Date().getTime() / 1000)) {
 					return cache.data
 				}
 

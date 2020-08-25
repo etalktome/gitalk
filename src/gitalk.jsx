@@ -1,7 +1,6 @@
 import React, { Component } from 'react'
 import FlipMove from 'react-flip-move'
 import autosize from 'autosize'
-import { client } from './web/client/web-client'
 import cache from './web/cache'
 
 import i18n from './i18n'
@@ -20,7 +19,7 @@ import Button from './component/button'
 import Action from './component/action'
 import Comment from './component/comment'
 import Svg from './component/svg'
-import { GT_ACCESS_TOKEN, GT_VERSION, GT_COMMENT } from './const'
+import { GT_ACCESS_TOKEN, GT_VERSION, GT_COMMENT,GT_ANONYMOUS_NAME } from './const'
 import QLGetComments from './graphql/getComments'
 
 class GitalkComponent extends Component {
@@ -34,6 +33,7 @@ class GitalkComponent extends Component {
     pagerDirection: 'last',
     cursor: null,
     previewHtml: '',
+    anonymousName: '',
 
     isNoInit: false,
     isIniting: true,
@@ -55,10 +55,24 @@ class GitalkComponent extends Component {
     this.options = Object.assign({}, {
       server: {
         oauth_api: '',
-        anonymous_api: ''
+        anonymous_api: '',
       },
       anonymous: {
         accountName: '', //will replace to anonymous
+      },
+      cache: {
+        comments: {
+          enable: true,
+          ttl: 600
+        },
+        userInfo: {
+          enable: true,
+          ttl: 3600
+        },
+        issue: {
+          enable: true,
+          ttl: -1
+        }
       },
       id: window.location.href,
       number: -1,
@@ -106,7 +120,17 @@ class GitalkComponent extends Component {
     }
 
     this.getInit()
-      .then(() => this.setState({ isIniting: false }))
+      .then(() => {
+        const name = localStorage.getItem(GT_ANONYMOUS_NAME)
+        if (!this.user && name) {
+          this.setState({
+            anonymousName: name,
+            isIniting: false
+          })
+          return
+        }
+        this.setState({ isIniting: false })
+      })
       .catch(err => {
         console.log('err:', err)
         this.setState({
@@ -121,6 +145,11 @@ class GitalkComponent extends Component {
 
   componentDidUpdate () {
     this.commentEL && autosize(this.commentEL)
+  }
+
+  saveAnonymousName(name) {
+    localStorage.setItem(GT_ANONYMOUS_NAME,name)
+    this.setState({anonymousName: name})
   }
 
   get accessToken () {
@@ -157,7 +186,7 @@ class GitalkComponent extends Component {
       headers: {
         Authorization: `token ${this.accessToken}`
       },
-      cache: window.GT_CACHE.userInfo || {enable: true,ttl: 3600}
+      cache: this.options.cache.userInfo || {enable: true,ttl: 3600}
     }).then(res => {
       this.setState({ user: res.data })
     }).catch(err => {
@@ -173,7 +202,7 @@ class GitalkComponent extends Component {
         params: {
           t: Date.now()
         },
-        cache: window.GT_CACHE.issue || {enable: true,ttl: -1}
+        cache: this.options.cache.issue || {enable: true,ttl: -1}
       })
         .then(res => {
           let issue = null
@@ -201,7 +230,7 @@ class GitalkComponent extends Component {
         labels: labels.concat(id).join(','),
         t: Date.now()
       },
-      cache: window.GT_CACHE.issue || {enable: true,ttl: -1}
+      cache: this.options.cache.issue || {enable: true,ttl: -1}
     }).then(res => {
       const { createIssueManually } = this.options
       let isNoInit = false
@@ -271,7 +300,7 @@ class GitalkComponent extends Component {
             sort: 'comments',
             direction: this.state.pagerDirection === 'last' ? 'asc' : 'desc'
           },
-          cache: window.GT_CACHE.comments || {enable: true, ttl: 600}
+          cache: this.options.cache.comments || {enable: true, ttl: 600}
         }).then(res => {
           const { comments, issue } = this.state
           let isLoadOver = false
@@ -322,8 +351,8 @@ class GitalkComponent extends Component {
       })
   }
 
-  createAnonmouslyComment() {
-    const { comment, localComments, comments } = this.state
+  createAnonmouslyComment(comment) {
+    const { localComments, comments } = this.state
     return this.getIssue()
           .then(issue => this.submitAnonmouslyComment(issue.comments_url,comment))
           .then(res => {
@@ -536,12 +565,20 @@ class GitalkComponent extends Component {
   }
   
   handleAnonCommentCreate = e => {
-    if (!this.state.comment.length) {
+    if (this.state.comment.length < 4) {
+      alert('请至少输入4个字符')
       e && e.preventDefault()
       return
     }
+
+    let { anonymousName,comment } = this.state
+    if (anonymousName) {
+      comment = `<!-- ${anonymousName} -->\n${comment}`
+      localStorage.setItem(GT_ANONYMOUS_NAME,anonymousName)
+    }
+
     this.setState({ isCreating: true })
-    this.createAnonmouslyComment()
+    this.createAnonmouslyComment(comment)
       .then(() => this.setState({
         isCreating: false,
         isOccurError: false
@@ -553,24 +590,6 @@ class GitalkComponent extends Component {
           errorMsg: formatErrorMsg(err)
         })
       })
-    // const token = this.anonToken
-    // if (!token) { 
-    //   console.log('anonymously access token is empty, please contact admin.')
-    //   return 
-    // }
-
-    // this.createComment(token)
-    //   .then(() => this.setState({
-    //     isCreating: false,
-    //     isOccurError: false
-    //   }))
-    //   .catch(err => {
-    //     this.setState({
-    //       isCreating: false,
-    //       isOccurError: true,
-    //       errorMsg: formatErrorMsg(err)
-    //     })
-    //   })
   }
   handleCommentPreview = e => {
     this.setState({
@@ -603,6 +622,7 @@ class GitalkComponent extends Component {
     this.getComments(issue).then(() => this.setState({ isLoadMore: false }))
   }
   handleCommentChange = e => this.setState({ comment: e.target.value })
+  handleAnonymousNameChange = e => this.setState({ anonymousName: e.target.value })
   handleLogout = () => {
     this.logout()
     window.location.reload()
@@ -657,6 +677,14 @@ class GitalkComponent extends Component {
     const { user, comment, isCreating, previewHtml, isPreview } = this.state
     return (
       <div>
+        {!user && <div className="gt-header-anon-user-name">
+            <input 
+              type="text"
+              value={this.state.anonymousName}
+              onChange={this.handleAnonymousNameChange}
+              placeholder='Anonymous name' 
+              className="gt-header-anon-input"></input>
+        </div>}
         <div className="gt-header" key="header">
         {user ?
           <Avatar className="gt-header-avatar" src={user.avatar_url} alt={user.login} /> :

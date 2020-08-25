@@ -21,6 +21,7 @@ import Comment from './component/comment'
 import Svg from './component/svg'
 import { GT_ACCESS_TOKEN, GT_VERSION, GT_COMMENT,GT_ANONYMOUS_NAME } from './const'
 import QLGetComments from './graphql/getComments'
+import { getUsername,parseBody } from './utils/comment'
 
 class GitalkComponent extends Component {
   state = {
@@ -145,11 +146,6 @@ class GitalkComponent extends Component {
 
   componentDidUpdate () {
     this.commentEL && autosize(this.commentEL)
-  }
-
-  saveAnonymousName(name) {
-    localStorage.setItem(GT_ANONYMOUS_NAME,name)
-    this.setState({anonymousName: name})
   }
 
   get accessToken () {
@@ -387,10 +383,20 @@ class GitalkComponent extends Component {
   }
   reply = replyComment => () => {
     const { comment } = this.state
-    const replyCommentBody = replyComment.body
+    const { accountName } = this.options.anonymous
+    const username = replyComment.user.login
+
+    const replyCommentBody = parseBody(replyComment,this.options.anonymous.accountName)
     let replyCommentArray = replyCommentBody.split('\n')
-    replyCommentArray.unshift(`@${replyComment.user.login}`)
     replyCommentArray = replyCommentArray.map(t => `> ${t}`)
+
+    if (accountName !== username) {
+      replyCommentArray.unshift(`> @${replyComment.user.login}`)
+    } else {
+      const name = `> Author: ${getUsername(replyComment,this.options.anonymous,this.i18n)}   `
+      replyCommentArray.unshift(name)
+    }
+
     replyCommentArray.push('')
     replyCommentArray.push('')
     if (comment) replyCommentArray.unshift('')

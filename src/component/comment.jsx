@@ -9,6 +9,7 @@ import buildDistanceInWordsLocaleFR from 'date-fns/locale/fr/build_distance_in_w
 import buildDistanceInWordsLocaleRU from 'date-fns/locale/ru/build_distance_in_words_locale/index'
 import 'github-markdown-css/github-markdown.css'
 import i18n from '../i18n'
+import { getUsername } from '../utils/comment'
 
 const ZHCN = buildDistanceInWordsLocaleZHCN()
 const ZHTW = buildDistanceInWordsLocaleZHTW()
@@ -44,34 +45,34 @@ export default class Comment extends Component {
     }
   }
 
-  getLoginName(comment) {
-    const { accountName } = this.props.anonymous
-    const username = comment.user.login
-    if (accountName !== username) {
-      return comment.user.login
-    }
+  // getLoginName(comment) {
+  //   const { accountName } = this.props.anonymous
+  //   const username = comment.user.login
+  //   if (accountName !== username) {
+  //     return comment.user.login
+  //   }
 
-    try {
-      const defaultName = this.i18n.t('anonymously-comment')
-      let content = comment.body.split('\n')[0]
-      const result = content.match('<!--(.*)-->')
-      if (!result) { return defaultName }
+  //   try {
+  //     const defaultName = this.i18n.t('anonymously-comment')
+  //     let content = comment.body.split('\n')[0]
+  //     const result = content.match('<!--(.*)-->')
+  //     if (!result) { return defaultName }
 
-      let name = result[1]
-      if (name) {
-        name = name.trim()
-        if (name.length > 10) {
-          name = name.substring(0,10) + '...'
-        }
+  //     let name = result[1]
+  //     if (name) {
+  //       name = name.trim()
+  //       if (name.length > 10) {
+  //         name = name.substring(0,10) + '...'
+  //       }
 
-        return name
-      }
-    } catch(err) {
-      return defaultName
-    }
+  //       return name
+  //     }
+  //   } catch(err) {
+  //     return defaultName
+  //   }
 
-    return defaultName
-  }
+  //   return defaultName
+  // }
 
   getCommentContent(comment) {
     const { accountName } = this.props.anonymous
@@ -143,7 +144,7 @@ export default class Comment extends Component {
               href={!this.isAnonymousComment(comment) && comment.user && comment.user.html_url}
             >
               {/* {comment.user && comment.user.login} */}
-              {comment.user && this.getLoginName(comment)}
+              {comment.user && getUsername(comment,this.props.anonymous,this.i18n)}
             </a>
             <span className="gt-comment-text">{commentedText}</span>
             <span className="gt-comment-date">

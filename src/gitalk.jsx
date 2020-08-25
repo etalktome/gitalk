@@ -233,6 +233,7 @@ class GitalkComponent extends Component {
         labels: labels.concat(id).join(','),
         t: Date.now()
       },
+      proxy: true,
       cache: this.options.cache.issue || {enable: true,ttl: -1}
     }).then(res => {
       const { createIssueManually } = this.options
@@ -309,6 +310,7 @@ class GitalkComponent extends Component {
             sort: 'comments',
             direction: this.state.pagerDirection === 'last' ? 'asc' : 'desc'
           },
+          proxy: true,
           cache: this.options.cache.comments || {enable: true, ttl: 600}
         }).then(res => {
           const { comments, issue } = this.state

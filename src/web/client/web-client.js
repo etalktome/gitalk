@@ -34,7 +34,7 @@ webClient.interceptors.request.use(config => {
       if (accessToken) {
         headers['Authorization'] = `token ${accessToken}`
       } else {
-        if (window.GT_PROXY) {
+        if (conf.proxy && window.GT_PROXY) {
           conf.baseURL = window.GT_PROXY
           if (conf.url.startsWith("https://api.github.com")) {
             conf.url = conf.url.replace('https://api.github.com',conf.baseURL)

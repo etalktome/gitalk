@@ -257,15 +257,14 @@ class GitalkComponent extends Component {
     if (issue) {
       this.setState({ isNoInit: false })
       result = Promise.resolve(issue)
-    }
-
-    if (typeof number === 'number' && number > 0) {
+    } else if (typeof number === 'number' && number > 0) {
       return this.getIssueById().then(resIssue => {
         if (!resIssue) return this.getIssueByLabels()
         result = Promise.resolve(resIssue)
       })
+    } else {
+      result = this.getIssueByLabels()
     }
-    result = this.getIssueByLabels()
 
     return result.then(data => {
       updateCommentCount(data.comments)
@@ -638,6 +637,9 @@ class GitalkComponent extends Component {
       headers: { 
         Accept: "application/vnd.github.v3+json",
         'Content-Type': 'application/json'
+      },
+      cache: {
+        enable: false
       }
     }).then(res => {
       this.setState({

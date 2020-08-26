@@ -17,5 +17,6 @@
   "sort-desc": "從新至舊排序",
   "logout": "登出",
   "anonymous": "訪客",
-  "anonymously-comment": "匿名"
+  "anonymously-comment": "匿名",
+  "clear-cache": "清除當前頁面緩存"
 }

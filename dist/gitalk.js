@@ -2475,7 +2475,7 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 var GT_ACCESS_TOKEN = exports.GT_ACCESS_TOKEN = 'GT_ACCESS_TOKEN';
-var GT_VERSION = exports.GT_VERSION = "1.6.2"; // eslint-disable-line
+var GT_VERSION = exports.GT_VERSION = "1.6.8"; // eslint-disable-line
 var GT_COMMENT = exports.GT_COMMENT = 'GT_COMMENT';
 var GT_ANONYMOUS_NAME = exports.GT_ANONYMOUS_NAME = 'GT_ANONYMOUS_NAME';
 var GT_COMMENT_COUNT = exports.GT_COMMENT_COUNT = 'GT_COMMENT_COUNT';

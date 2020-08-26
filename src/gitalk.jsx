@@ -19,7 +19,14 @@ import Button from './component/button'
 import Action from './component/action'
 import Comment from './component/comment'
 import Svg from './component/svg'
-import { GT_ACCESS_TOKEN, GT_VERSION, GT_COMMENT,GT_ANONYMOUS_NAME } from './const'
+import { 
+  GT_ACCESS_TOKEN, 
+  GT_VERSION, 
+  GT_COMMENT,
+  GT_ANONYMOUS_NAME,
+  GT_CACHE_KEY_COMMENT, 
+  ONE_DAY
+} from './const'
 import QLGetComments from './graphql/getComments'
 import { 
   getUsername,
@@ -297,6 +304,12 @@ class GitalkComponent extends Component {
     const { clientID, clientSecret, perPage } = this.options
     const { page } = this.state
 
+    const cacheKey = `${GT_CACHE_KEY_COMMENT}_${this.options.id}_${page}`
+    const cacheInfo = Object.assign(
+      this.options.cache.comments || 
+      { enable: true, ttl: 600 },{ cacheKey }
+    )
+
     return this.getIssue()
       .then(issue => {
         if (!issue) return
@@ -311,7 +324,7 @@ class GitalkComponent extends Component {
             direction: this.state.pagerDirection === 'last' ? 'asc' : 'desc'
           },
           proxy: true,
-          cache: this.options.cache.comments || {enable: true, ttl: 600}
+          cache: cacheInfo
         }).then(res => {
           const { comments, issue } = this.state
           let isLoadOver = false
@@ -328,6 +341,10 @@ class GitalkComponent extends Component {
             updateCommentCount(issue.id,cs.length)
           }
 
+          if (length === perPage) {
+            cache.save(cacheKey,listComments,ONE_DAY * 7)
+          }
+
           // invalid in cache mode
           // if (cs.length >= issue.comments || res.data.length < perPage) {
           //   isLoadOver = true
@@ -338,6 +355,13 @@ class GitalkComponent extends Component {
             page: page + 1
           })
           return cs
+        })
+        .catch(err => {
+          this.setState({ 
+            isLoading: false,
+            isOccurError: true,
+            errorMsg: formatErrorMsg(err)
+          })
         })
       })
   }
@@ -350,10 +374,8 @@ class GitalkComponent extends Component {
   createComment (accessToken) {
     const { comment, localComments, comments } = this.state
 
-    let commentsUrl = ''
     return this.getIssue()
       .then(issue => {
-        commentsUrl = issue.comments_url.replace('https://api.github.com','')
         axiosGithub.post(issue.comments_url, {
           body: comment
         }, {
@@ -365,16 +387,19 @@ class GitalkComponent extends Component {
       })
       .then(res => {
         const { issue } = this.state
-        if (commentsUrl) {
-          cache.removeByPrefix(commentsUrl)
-        }
         updateCommentCount(issue.id,getCommentCount(issue.id) + 1)
+        this.removeCommentCache();
         this.setState({
           comment: '',
           comments: comments.concat(res.data),
           localComments: localComments.concat(res.data)
         })
       })
+  }
+  
+  removeCommentCache() {
+    const cacheKeyPrefix = `${GT_CACHE_KEY_COMMENT}_${this.options.id}`
+    cache.removeByPrefix(cacheKeyPrefix)
   }
 
   createAnonmouslyComment(comment) {
@@ -401,8 +426,7 @@ class GitalkComponent extends Component {
         'Content-Type': 'application/x-www-form-urlencoded'
       }
     }).then(res => {
-      const keyPrefix = postUrl.replace('https://api.github.com','')
-      cache.removeByPrefix(keyPrefix)
+      this.removeCommentCache()
       return Promise.resolve(res)
     })
   }
@@ -558,6 +582,10 @@ class GitalkComponent extends Component {
     const { comment } = this.state
     window.localStorage.setItem(GT_COMMENT, encodeURIComponent(comment))
     window.location.href = this.loginLink
+  }
+  clearPageCache() {
+    cache.clear(location.pathname)
+    alert('successful')
   }
   handleIssueCreate = () => {
     this.setState({ isIssueCreating: true })
@@ -853,6 +881,7 @@ class GitalkComponent extends Component {
               <Action className="gt-action-logout" onClick={this.handleLogout} text={this.i18n.t('logout')}/> :
               <a className="gt-action gt-action-login" onClick={this.handleLogin}>{this.i18n.t('login-with-github')}</a>
             }
+            <a className="gt-action" onClick={this.clearPageCache}>{this.i18n.t('clear-cache')}</a>
             <div className="gt-copyright">
               <a className="gt-link gt-link-project" href="https://github.com/gitalk/gitalk" target="_blank">Gitalk</a>
               <span className="gt-version">{GT_VERSION}</span>

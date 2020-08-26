@@ -17,5 +17,6 @@
   "sort-desc": "从新到旧排序",
   "logout": "注销",
   "anonymous": "未登录用户",
-  "anonymously-comment": "匿名"
+  "anonymously-comment": "匿名",
+  "clear-cache": "清除当前页面缓存"
 }

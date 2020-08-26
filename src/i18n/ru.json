@@ -17,5 +17,6 @@
   "sort-desc": "Сортировать по последним",
   "logout": "Выход",
   "anonymous": "Анонимный",
-  "anonymously-comment": "Анонимный"
+  "anonymously-comment": "Анонимный",
+  "clear-cache": "Clear the page cache"
 }

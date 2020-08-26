@@ -49,7 +49,7 @@ webClient.interceptors.request.use(config => {
 
     if (conf.method.toLocaleLowerCase() === 'get') {
       if (conf.cache.enable) {
-        const cacheKey = buildCacheKey(conf)
+        const cacheKey = conf.cache.cacheKey || buildCacheKey(conf)
         const cacheData = cache.fetch(cacheKey)
         if (cacheData) {
           let source = axios.CancelToken.source()
@@ -75,7 +75,7 @@ webClient.interceptors.response.use(res => {
   if (conf.method.toLocaleLowerCase() === 'get') {
     const data = res.data
     if (data && conf.cache.enable) {
-      const cacheKey = buildCacheKey(conf)
+      const cacheKey = conf.cache.cacheKey || buildCacheKey(conf)
       cache.save(cacheKey,data,conf.cache.ttl)
     }
   }
@@ -84,7 +84,7 @@ webClient.interceptors.response.use(res => {
 }, err => {
   if (axios.isCancel(err)) {
     // return Promise.resolve(err.message)
-    return new Promise(resolve => setTimeout(() => resolve(err.message), 200));
+    return new Promise(resolve => setTimeout(() => resolve(err.message), 150));
   }
 
   return Promise.reject(err)

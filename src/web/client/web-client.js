@@ -71,9 +71,9 @@ webClient.interceptors.response.use(res => {
       return res
   }
 
+  const conf = Object.assign({cache: { enable: true }},res.config)
   if (conf.method.toLocaleLowerCase() === 'get') {
     const data = res.data
-    const conf = Object.assign({cache: { enable: true }},res.config)
     if (data && conf.cache.enable) {
       const cacheKey = buildCacheKey(conf)
       cache.save(cacheKey,data,conf.cache.ttl)

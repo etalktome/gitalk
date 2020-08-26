@@ -270,7 +270,7 @@ class GitalkComponent extends Component {
     }
 
     return result.then(data => {
-      updateCommentCount(data.comments)
+      updateCommentCount(data.id,data.comments)
       return Promise.resolve(data)
     })
   }
@@ -320,12 +320,12 @@ class GitalkComponent extends Component {
           const length = listComments.length || 0
           if (length === 0 || length < perPage) {
             isLoadOver = true
-            updateCommentCount(cs.length)
+            updateCommentCount(issue.id,cs.length)
           }
           
           const count = cs.length
-          if (count > getCommentCount()) {
-            updateCommentCount(cs.length)
+          if (count > getCommentCount(issue.id)) {
+            updateCommentCount(issue.id,cs.length)
           }
 
           // invalid in cache mode
@@ -364,10 +364,11 @@ class GitalkComponent extends Component {
         })
       })
       .then(res => {
+        const { issue } = this.state
         if (commentsUrl) {
           cache.removeByPrefix(commentsUrl)
         }
-        updateCommentCount(getCommentCount() + 1)
+        updateCommentCount(issue.id,getCommentCount(issue.id) + 1)
         this.setState({
           comment: '',
           comments: comments.concat(res.data),
@@ -381,7 +382,8 @@ class GitalkComponent extends Component {
     return this.getIssue()
           .then(issue => this.submitAnonmouslyComment(issue.comments_url,comment))
           .then(res => {
-            updateCommentCount(getCommentCount() + 1)
+            const { issue } = this.state
+            updateCommentCount(issue.id,getCommentCount(issue.id) + 1)
             this.setState({
               comment: '',
               comments: comments.concat(res.data),
@@ -819,7 +821,7 @@ class GitalkComponent extends Component {
   }
   meta () {
     const { user, issue, isPopupVisible, pagerDirection, localComments } = this.state
-    const cnt = getCommentCount()
+    const cnt = issue ? getCommentCount(issue.id) : 0
     const isDesc = pagerDirection === 'last'
     // const { updateCountCallback } = this.options
 

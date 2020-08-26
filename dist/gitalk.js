@@ -3816,24 +3816,26 @@ var parseBody = exports.parseBody = function parseBody(comment, accountName) {
 	return arr.join('\n');
 };
 
-var getCommentCount = exports.getCommentCount = function getCommentCount() {
-	var defaultValue = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
+var getCommentCount = exports.getCommentCount = function getCommentCount(issueId) {
+	var defaultValue = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
 
 	var count = defaultValue;
+	var key = _const.GT_COMMENT_COUNT + "_" + issueId;
 	try {
-		count = parseInt(localStorage.getItem(_const.GT_COMMENT_COUNT));
+		count = parseInt(localStorage.getItem(key));
 	} catch (err) {}
 
 	return count;
 };
 
-var updateCommentCount = exports.updateCommentCount = function updateCommentCount(commentCount) {
-	var count = getCommentCount();
+var updateCommentCount = exports.updateCommentCount = function updateCommentCount(issueId, commentCount) {
+	var key = _const.GT_COMMENT_COUNT + "_" + issueId;
+	var count = getCommentCount(key);
 	if (count >= commentCount) {
 		return;
 	}
 
-	localStorage.setItem(_const.GT_COMMENT_COUNT, commentCount);
+	localStorage.setItem(key, commentCount);
 };
 
 /***/ }),
@@ -6812,12 +6814,12 @@ var GitalkComponent = function (_Component) {
           var length = listComments.length || 0;
           if (length === 0 || length < perPage) {
             isLoadOver = true;
-            (0, _comment3.updateCommentCount)(cs.length);
+            (0, _comment3.updateCommentCount)(issue.id, cs.length);
           }
 
           var count = cs.length;
-          if (count > (0, _comment3.getCommentCount)()) {
-            (0, _comment3.updateCommentCount)(cs.length);
+          if (count > (0, _comment3.getCommentCount)(issue.id)) {
+            (0, _comment3.updateCommentCount)(issue.id, cs.length);
           }
 
           // invalid in cache mode
@@ -7286,7 +7288,7 @@ var GitalkComponent = function (_Component) {
       }
 
       return result.then(function (data) {
-        (0, _comment3.updateCommentCount)(data.comments);
+        (0, _comment3.updateCommentCount)(data.id, data.comments);
         return _promise2.default.resolve(data);
       });
     }
@@ -7350,10 +7352,12 @@ var GitalkComponent = function (_Component) {
           }
         });
       }).then(function (res) {
+        var issue = _this8.state.issue;
+
         if (commentsUrl) {
           _cache2.default.removeByPrefix(commentsUrl);
         }
-        (0, _comment3.updateCommentCount)((0, _comment3.getCommentCount)() + 1);
+        (0, _comment3.updateCommentCount)(issue.id, (0, _comment3.getCommentCount)(issue.id) + 1);
         _this8.setState({
           comment: '',
           comments: comments.concat(res.data),
@@ -7373,7 +7377,9 @@ var GitalkComponent = function (_Component) {
       return this.getIssue().then(function (issue) {
         return _this9.submitAnonmouslyComment(issue.comments_url, comment);
       }).then(function (res) {
-        (0, _comment3.updateCommentCount)((0, _comment3.getCommentCount)() + 1);
+        var issue = _this9.state.issue;
+
+        (0, _comment3.updateCommentCount)(issue.id, (0, _comment3.getCommentCount)(issue.id) + 1);
         _this9.setState({
           comment: '',
           comments: comments.concat(res.data),
@@ -7695,7 +7701,7 @@ var GitalkComponent = function (_Component) {
           pagerDirection = _state6.pagerDirection,
           localComments = _state6.localComments;
 
-      var cnt = (0, _comment3.getCommentCount)();
+      var cnt = issue ? (0, _comment3.getCommentCount)(issue.id) : 0;
       var isDesc = pagerDirection === 'last';
       // const { updateCountCallback } = this.options
 
@@ -12270,11 +12276,13 @@ webClient.interceptors.response.use(function (res) {
     return res;
   }
 
-  var data = res.data;
   var conf = (0, _assign2.default)({ cache: { enable: true } }, res.config);
-  if (data && conf.cache.enable) {
-    var cacheKey = buildCacheKey(conf);
-    _cache2.default.save(cacheKey, data, conf.cache.ttl);
+  if (conf.method.toLocaleLowerCase() === 'get') {
+    var data = res.data;
+    if (data && conf.cache.enable) {
+      var cacheKey = buildCacheKey(conf);
+      _cache2.default.save(cacheKey, data, conf.cache.ttl);
+    }
   }
 
   return res;

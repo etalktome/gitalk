@@ -46,19 +46,21 @@ export const parseBody = (comment,accountName) => {
 	return arr.join('\n')
 }
 
-export const getCommentCount = (defaultValue = 0) => {
+export const getCommentCount = (issueId,defaultValue = 0) => {
 	let count = defaultValue;
+	const key = GT_COMMENT_COUNT + "_" + issueId
 	try {
-		count = parseInt(localStorage.getItem(GT_COMMENT_COUNT))
+		count = parseInt(localStorage.getItem(key))
 	} catch(err) {
 	}
 
 	return count
 }
 
-export const updateCommentCount = (commentCount) => {
-	let count = getCommentCount()
+export const updateCommentCount = (issueId,commentCount) => {
+	const key = GT_COMMENT_COUNT + "_" + issueId
+	let count = getCommentCount(key)
 	if (count >= commentCount) { return }
 
-	localStorage.setItem(GT_COMMENT_COUNT,commentCount)
+	localStorage.setItem(key,commentCount)
 }

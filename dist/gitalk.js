@@ -2480,6 +2480,9 @@ var GT_COMMENT = exports.GT_COMMENT = 'GT_COMMENT';
 var GT_ANONYMOUS_NAME = exports.GT_ANONYMOUS_NAME = 'GT_ANONYMOUS_NAME';
 var GT_COMMENT_COUNT = exports.GT_COMMENT_COUNT = 'GT_COMMENT_COUNT';
 
+var GT_CACHE_KEY_COMMENT = exports.GT_CACHE_KEY_COMMENT = "GT_COMMENT_CACHE";
+var ONE_DAY = exports.ONE_DAY = 24 * 60 * 60;
+
 /***/ }),
 /* 50 */
 /***/ (function(module, exports, __webpack_require__) {
@@ -3030,42 +3033,47 @@ var _keys2 = _interopRequireDefault(_keys);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-exports.default = {
-	save: function save(key, value) {
-		var ttl = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : -1;
+function fetchData(key) {
+	var data = localStorage.getItem(key);
+	if (data) {
+		try {
+			var cache = JSON.parse(data);
+			var expire = cache.expire || -1;
+			if (expire === -1 || expire >= new Date().getTime() / 1000) {
+				return cache.data;
+			}
 
-		if (!key || !value || (0, _keys2.default)(value).length <= 0) {
+			//expired
+			localStorage.removeItem(key);
+		} catch (err) {
+			localStorage.removeItem(key);
+		}
+	}
+
+	return undefined;
+}
+
+exports.default = {
+	save: function save(key, data) {
+		var ttl = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : -1;
+		var scope = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : location.pathname;
+
+		if (!key || !data || (0, _keys2.default)(data).length <= 0) {
 			return;
 		}
-		var cache = {
-			data: value,
-			epxire: ttl <= 0 ? -1 : parseInt(new Date().getTime() / 1000 + ttl)
-		};
 
+		key = 'GT_' + key;
+		var expire = ttl <= 0 ? -1 : parseInt(new Date().getTime() / 1000 + ttl);
+		var cache = { data: data, expire: expire, scope: scope };
 		localStorage.setItem(key, (0, _stringify2.default)(cache));
 	},
 	fetch: function fetch(key) {
-		var data = localStorage.getItem(key);
-		if (data) {
-			try {
-				var cache = JSON.parse(data);
-				var epxire = cache.epxire || -1;
-				if (epxire === -1 || epxire >= new Date().getTime() / 1000) {
-					return cache.data;
-				}
-
-				//expired
-				localStorage.removeItem(key);
-			} catch (err) {
-				localStorage.removeItem(key);
-			}
-		}
-
-		return undefined;
+		key = 'GT_' + key;
+		return fetchData(key);
 	},
 	removeByPrefix: function removeByPrefix(keyPrefix) {
 		var arr = [];
-
+		keyPrefix = 'GT_' + keyPrefix;
 		for (var i = 0; i < localStorage.length; i++) {
 			if (localStorage.key(i).indexOf(keyPrefix) !== -1) {
 				arr.push(localStorage.key(i));
@@ -3074,6 +3082,30 @@ exports.default = {
 
 		arr.forEach(function (key) {
 			return localStorage.removeItem(key);
+		});
+	},
+	clear: function clear() {
+		var scope = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : location.pathname;
+
+		var keys = [];
+		for (var i = 0; i < localStorage.length; i++) {
+			var key = localStorage.key(i);
+			if (!key.startsWith('GT_')) {
+				continue;
+			}
+
+			try {
+				var cache = JSON.parse(localStorage.getItem(key));
+				if (cache) {
+					if (!scope || scope === cache.scope) {
+						keys.push(key);
+					}
+				}
+			} catch (err) {}
+		}
+
+		keys.forEach(function (k) {
+			return localStorage.removeItem(k);
 		});
 	}
 };
@@ -6789,6 +6821,9 @@ var GitalkComponent = function (_Component) {
       var page = _this.state.page;
 
 
+      var cacheKey = _const.GT_CACHE_KEY_COMMENT + '_' + _this.options.id + '_' + page;
+      var cacheInfo = (0, _assign2.default)(_this.options.cache.comments || { enable: true, ttl: 600 }, { cacheKey: cacheKey });
+
       return _this.getIssue().then(function (issue) {
         if (!issue) return;
         return _webClient.client.get(issue.comments_url, {
@@ -6797,12 +6832,10 @@ var GitalkComponent = function (_Component) {
           },
           params: {
             per_page: perPage,
-            page: page,
-            sort: 'comments',
-            direction: _this.state.pagerDirection === 'last' ? 'asc' : 'desc'
+            page: page
           },
           proxy: true,
-          cache: _this.options.cache.comments || { enable: true, ttl: 600 }
+          cache: cacheInfo
         }).then(function (res) {
           var _this$state = _this.state,
               comments = _this$state.comments,
@@ -6822,6 +6855,10 @@ var GitalkComponent = function (_Component) {
             (0, _comment3.updateCommentCount)(issue.id, cs.length);
           }
 
+          if (length === perPage) {
+            _cache2.default.save(cacheKey, listComments, _const.ONE_DAY * 7);
+          }
+
           // invalid in cache mode
           // if (cs.length >= issue.comments || res.data.length < perPage) {
           //   isLoadOver = true
@@ -6832,6 +6869,12 @@ var GitalkComponent = function (_Component) {
             page: page + 1
           });
           return cs;
+        }).catch(function (err) {
+          _this.setState({
+            isLoading: false,
+            isOccurError: true,
+            errorMsg: (0, _util.formatErrorMsg)(err)
+          });
         });
       });
     };
@@ -6936,13 +6979,14 @@ var GitalkComponent = function (_Component) {
             isCreating: false,
             isOccurError: false
           });
-        }).catch(function (err) {
-          _this.setState({
-            isCreating: false,
-            isOccurError: true,
-            errorMsg: (0, _util.formatErrorMsg)(err)
-          });
         });
+        // .catch(err => {
+        //   this.setState({
+        //     isCreating: false,
+        //     isOccurError: true,
+        //     errorMsg: formatErrorMsg(err)
+        //   })
+        // })
         return { isCreating: true };
       });
     };
@@ -7340,10 +7384,8 @@ var GitalkComponent = function (_Component) {
           comments = _state.comments;
 
 
-      var commentsUrl = '';
       return this.getIssue().then(function (issue) {
-        commentsUrl = issue.comments_url.replace('https://api.github.com', '');
-        _webClient.client.post(issue.comments_url, {
+        return _webClient.client.post(issue.comments_url, {
           body: comment
         }, {
           headers: {
@@ -7354,16 +7396,20 @@ var GitalkComponent = function (_Component) {
       }).then(function (res) {
         var issue = _this8.state.issue;
 
-        if (commentsUrl) {
-          _cache2.default.removeByPrefix(commentsUrl);
-        }
         (0, _comment3.updateCommentCount)(issue.id, (0, _comment3.getCommentCount)(issue.id) + 1);
+        _this8.removeCommentCache();
         _this8.setState({
           comment: '',
           comments: comments.concat(res.data),
           localComments: localComments.concat(res.data)
         });
       });
+    }
+  }, {
+    key: 'removeCommentCache',
+    value: function removeCommentCache() {
+      var cacheKeyPrefix = _const.GT_CACHE_KEY_COMMENT + '_' + this.options.id;
+      _cache2.default.removeByPrefix(cacheKeyPrefix);
     }
   }, {
     key: 'createAnonmouslyComment',
@@ -7390,6 +7436,8 @@ var GitalkComponent = function (_Component) {
   }, {
     key: 'submitAnonmouslyComment',
     value: function submitAnonmouslyComment(postUrl, body) {
+      var _this10 = this;
+
       //use urlencode to avoid preflight request
       var params = 'postUrl=' + encodeURIComponent(postUrl) + '&content=' + body;
       var url = this.options.server.anonymous_api;
@@ -7398,8 +7446,7 @@ var GitalkComponent = function (_Component) {
           'Content-Type': 'application/x-www-form-urlencoded'
         }
       }).then(function (res) {
-        var keyPrefix = postUrl.replace('https://api.github.com', '');
-        _cache2.default.removeByPrefix(keyPrefix);
+        _this10.removeCommentCache();
         return _promise2.default.resolve(res);
       });
     }
@@ -7412,7 +7459,7 @@ var GitalkComponent = function (_Component) {
   }, {
     key: 'like',
     value: function like(comment) {
-      var _this10 = this;
+      var _this11 = this;
 
       var _options4 = this.options,
           owner = _options4.owner,
@@ -7448,7 +7495,7 @@ var GitalkComponent = function (_Component) {
           return c;
         });
 
-        _this10.setState({
+        _this11.setState({
           comments: comments
         });
       });
@@ -7456,7 +7503,7 @@ var GitalkComponent = function (_Component) {
   }, {
     key: 'unLike',
     value: function unLike(comment) {
-      var _this11 = this;
+      var _this12 = this;
 
       var user = this.state.user;
       var comments = this.state.comments;
@@ -7502,11 +7549,17 @@ var GitalkComponent = function (_Component) {
             return c;
           });
 
-          _this11.setState({
+          _this12.setState({
             comments: comments
           });
         }
       });
+    }
+  }, {
+    key: 'clearPageCache',
+    value: function clearPageCache() {
+      _cache2.default.clear(location.pathname);
+      alert('successful');
     }
   }, {
     key: 'initing',
@@ -7559,7 +7612,7 @@ var GitalkComponent = function (_Component) {
   }, {
     key: 'header',
     value: function header() {
-      var _this12 = this;
+      var _this13 = this;
 
       var _state4 = this.state,
           user = _state4.user,
@@ -7594,7 +7647,7 @@ var GitalkComponent = function (_Component) {
             { className: 'gt-header-comment' },
             _react2.default.createElement('textarea', {
               ref: function ref(t) {
-                _this12.commentEL = t;
+                _this13.commentEL = t;
               },
               className: 'gt-header-textarea ' + (isPreview ? 'hide' : ''),
               value: comment,
@@ -7645,7 +7698,7 @@ var GitalkComponent = function (_Component) {
   }, {
     key: 'comments',
     value: function comments() {
-      var _this13 = this;
+      var _this14 = this;
 
       var _state5 = this.state,
           user = _state5.user,
@@ -7672,10 +7725,10 @@ var GitalkComponent = function (_Component) {
             key: c.id,
             user: user,
             language: language,
-            commentedText: _this13.i18n.t('commented'),
+            commentedText: _this14.i18n.t('commented'),
             admin: admin,
-            replyCallback: _this13.reply(c),
-            likeCallback: c.reactions && c.reactions.viewerHasReacted ? _this13.unLike.bind(_this13, c) : _this13.like.bind(_this13, c),
+            replyCallback: _this14.reply(c),
+            likeCallback: c.reactions && c.reactions.viewerHasReacted ? _this14.unLike.bind(_this14, c) : _this14.like.bind(_this14, c),
             anonymous: anonymous
           });
         }),
@@ -7735,6 +7788,11 @@ var GitalkComponent = function (_Component) {
             'a',
             { className: 'gt-action gt-action-login', onClick: this.handleLogin },
             this.i18n.t('login-with-github')
+          ),
+          _react2.default.createElement(
+            'a',
+            { className: 'gt-action', onClick: this.clearPageCache },
+            this.i18n.t('clear-cache')
           ),
           _react2.default.createElement(
             'div',
@@ -11217,43 +11275,43 @@ var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;//     (c) 2012 
 /* 162 */
 /***/ (function(module, exports) {
 
-module.exports = {"init":"Gitalk 加载中 ...","no-found-related":"未找到相关的 %{link} 进行评论","please-contact":"请联系 %{user} 初始化创建","init-issue":"初始化 Issue","leave-a-comment":"说点什么","preview":"预览","edit":"编辑","comment":"评论","support-markdown":"支持 Markdown 语法","login-with-github":"使用 GitHub 登录","first-comment-person":"来做第一个留言的人吧！","commented":"发表于","load-more":"加载更多","counts":"%{counts} 条评论","sort-asc":"从旧到新排序","sort-desc":"从新到旧排序","logout":"注销","anonymous":"未登录用户","anonymously-comment":"匿名"}
+module.exports = {"init":"Gitalk 加载中 ...","no-found-related":"未找到相关的 %{link} 进行评论","please-contact":"请联系 %{user} 初始化创建","init-issue":"初始化 Issue","leave-a-comment":"说点什么","preview":"预览","edit":"编辑","comment":"评论","support-markdown":"支持 Markdown 语法","login-with-github":"使用 GitHub 登录","first-comment-person":"来做第一个留言的人吧！","commented":"发表于","load-more":"加载更多","counts":"%{counts} 条评论","sort-asc":"从旧到新排序","sort-desc":"从新到旧排序","logout":"注销","anonymous":"未登录用户","anonymously-comment":"匿名","clear-cache":"清除当前页面缓存"}
 
 /***/ }),
 /* 163 */
 /***/ (function(module, exports) {
 
-module.exports = {"init":"Gitalk 載入中…","no-found-related":"未找到相關的 %{link}","please-contact":"請聯絡 %{user} 初始化評論","init-issue":"初始化 Issue","leave-a-comment":"寫點什麼","preview":"預覽","edit":"編輯","comment":"評論","support-markdown":"支援 Markdown 語法","login-with-github":"使用 GitHub 登入","first-comment-person":"成為首個留言的人吧！","commented":"評論於","load-more":"載入更多","counts":"%{counts} 筆評論","sort-asc":"從舊至新排序","sort-desc":"從新至舊排序","logout":"登出","anonymous":"訪客","anonymously-comment":"匿名"}
+module.exports = {"init":"Gitalk 載入中…","no-found-related":"未找到相關的 %{link}","please-contact":"請聯絡 %{user} 初始化評論","init-issue":"初始化 Issue","leave-a-comment":"寫點什麼","preview":"預覽","edit":"編輯","comment":"評論","support-markdown":"支援 Markdown 語法","login-with-github":"使用 GitHub 登入","first-comment-person":"成為首個留言的人吧！","commented":"評論於","load-more":"載入更多","counts":"%{counts} 筆評論","sort-asc":"從舊至新排序","sort-desc":"從新至舊排序","logout":"登出","anonymous":"訪客","anonymously-comment":"匿名","clear-cache":"清除當前頁面緩存"}
 
 /***/ }),
 /* 164 */
 /***/ (function(module, exports) {
 
-module.exports = {"init":"Gitalking ...","no-found-related":"Related %{link} not found","please-contact":"Please contact %{user} to initialize the comment","init-issue":"Init Issue","leave-a-comment":"Leave a comment","preview":"Preview","edit":"Edit","comment":"Comment","support-markdown":"Markdown is supported","login-with-github":"Login with GitHub","first-comment-person":"Be the first person to leave a comment!","commented":"commented","load-more":"Load more","counts":"%{counts} comment |||| %{counts} comments","sort-asc":"Sort by Oldest","sort-desc":"Sort by Latest","logout":"Logout","anonymous":"Anonymous","anonymously-comment":"Anonymous"}
+module.exports = {"init":"Gitalking ...","no-found-related":"Related %{link} not found","please-contact":"Please contact %{user} to initialize the comment","init-issue":"Init Issue","leave-a-comment":"Leave a comment","preview":"Preview","edit":"Edit","comment":"Comment","support-markdown":"Markdown is supported","login-with-github":"Login with GitHub","first-comment-person":"Be the first person to leave a comment!","commented":"commented","load-more":"Load more","counts":"%{counts} comment |||| %{counts} comments","sort-asc":"Sort by Oldest","sort-desc":"Sort by Latest","logout":"Logout","anonymous":"Anonymous","anonymously-comment":"Anonymous","clear-cache":"Clear the page cache"}
 
 /***/ }),
 /* 165 */
 /***/ (function(module, exports) {
 
-module.exports = {"init":"Gitalking ...","no-found-related":"Link %{link} no encontrado","please-contact":"Por favor contacta con %{user} para inicializar el comentario","init-issue":"Iniciar Issue","leave-a-comment":"Deja un comentario","preview":"Avance","edit":"Editar","comment":"Comentario","support-markdown":"Markdown es soportado","login-with-github":"Entrar con GitHub","first-comment-person":"Sé el primero en dejar un comentario!","commented":"comentó","load-more":"Cargar más","counts":"%{counts} comentario |||| %{counts} comentarios","sort-asc":"Ordenar por Antiguos","sort-desc":"Ordenar por Recientes","logout":"Salir","anonymous":"Anónimo","anonymously-comment":"Anónimo"}
+module.exports = {"init":"Gitalking ...","no-found-related":"Link %{link} no encontrado","please-contact":"Por favor contacta con %{user} para inicializar el comentario","init-issue":"Iniciar Issue","leave-a-comment":"Deja un comentario","preview":"Avance","edit":"Editar","comment":"Comentario","support-markdown":"Markdown es soportado","login-with-github":"Entrar con GitHub","first-comment-person":"Sé el primero en dejar un comentario!","commented":"comentó","load-more":"Cargar más","counts":"%{counts} comentario |||| %{counts} comentarios","sort-asc":"Ordenar por Antiguos","sort-desc":"Ordenar por Recientes","logout":"Salir","anonymous":"Anónimo","anonymously-comment":"Anónimo","clear-cache":"Clear the page cache"}
 
 /***/ }),
 /* 166 */
 /***/ (function(module, exports) {
 
-module.exports = {"init":"Gitalking ...","no-found-related":"Lien %{link} non trouvé","please-contact":"S’il vous plaît contactez %{user} pour initialiser les commentaires","init-issue":"Initialisation des issues","leave-a-comment":"Laisser un commentaire","preview":"Aperçu","edit":"Modifier","comment":"Commentaire","support-markdown":"Markdown est supporté","login-with-github":"Se connecter avec GitHub","first-comment-person":"Être le premier à laisser un commentaire !","commented":"commenter","load-more":"Charger plus","counts":"%{counts} commentaire |||| %{counts} commentaires","sort-asc":"Trier par plus ancien","sort-desc":"Trier par plus récent","logout":"Déconnexion","anonymous":"Anonyme","anonymously-comment":"Anonyme"}
+module.exports = {"init":"Gitalking ...","no-found-related":"Lien %{link} non trouvé","please-contact":"S’il vous plaît contactez %{user} pour initialiser les commentaires","init-issue":"Initialisation des issues","leave-a-comment":"Laisser un commentaire","preview":"Aperçu","edit":"Modifier","comment":"Commentaire","support-markdown":"Markdown est supporté","login-with-github":"Se connecter avec GitHub","first-comment-person":"Être le premier à laisser un commentaire !","commented":"commenter","load-more":"Charger plus","counts":"%{counts} commentaire |||| %{counts} commentaires","sort-asc":"Trier par plus ancien","sort-desc":"Trier par plus récent","logout":"Déconnexion","anonymous":"Anonyme","anonymously-comment":"Anonyme","clear-cache":"Clear the page cache"}
 
 /***/ }),
 /* 167 */
 /***/ (function(module, exports) {
 
-module.exports = {"init":"Gitalking ...","no-found-related":"Связанные %{link} не найдены","please-contact":"Пожалуйста, свяжитесь с %{user} чтобы инициализировать комментарий","init-issue":"Выпуск инициализации","leave-a-comment":"Оставить комментарий","preview":"Предварительный просмотр","edit":"Pедактировать","comment":"Комментарий","support-markdown":"Поддерживается Markdown","login-with-github":"Вход через GitHub","first-comment-person":"Будьте первым, кто оставил комментарий","commented":"прокомментированный","load-more":"Загрузить ещё","counts":"%{counts} комментарий |||| %{counts} комментарьев","sort-asc":"Сортировать по старым","sort-desc":"Сортировать по последним","logout":"Выход","anonymous":"Анонимный","anonymously-comment":"Анонимный"}
+module.exports = {"init":"Gitalking ...","no-found-related":"Связанные %{link} не найдены","please-contact":"Пожалуйста, свяжитесь с %{user} чтобы инициализировать комментарий","init-issue":"Выпуск инициализации","leave-a-comment":"Оставить комментарий","preview":"Предварительный просмотр","edit":"Pедактировать","comment":"Комментарий","support-markdown":"Поддерживается Markdown","login-with-github":"Вход через GitHub","first-comment-person":"Будьте первым, кто оставил комментарий","commented":"прокомментированный","load-more":"Загрузить ещё","counts":"%{counts} комментарий |||| %{counts} комментарьев","sort-asc":"Сортировать по старым","sort-desc":"Сортировать по последним","logout":"Выход","anonymous":"Анонимный","anonymously-comment":"Анонимный","clear-cache":"Clear the page cache"}
 
 /***/ }),
 /* 168 */
 /***/ (function(module, exports) {
 
-module.exports = {"init":"Gitalking ...","no-found-related":"Zugehöriger %{link} nicht gefunden","please-contact":"Bitte kontaktiere %{user} um den Kommentar zu initialisieren","init-issue":"Initialisiere Issue","leave-a-comment":"Hinterlasse einen Kommentar","preview":"Vorschau","edit":"Editieren","comment":"Kommentieren","support-markdown":"Markdown wird unterstützt","login-with-github":"Mit GitHub-Account anmelden","first-comment-person":"Sei die erste Person, welche einen Kommentar hinterlässt!","commented":"kommentierte","load-more":"Zeige mehr","counts":"%{counts} Kommentar |||| %{counts} Kommentare","sort-asc":"Älteste zuerst","sort-desc":"Neuste zuerst","logout":"Abmelden","anonymous":"Anonym","anonymously-comment":"Anonym"}
+module.exports = {"init":"Gitalking ...","no-found-related":"Zugehöriger %{link} nicht gefunden","please-contact":"Bitte kontaktiere %{user} um den Kommentar zu initialisieren","init-issue":"Initialisiere Issue","leave-a-comment":"Hinterlasse einen Kommentar","preview":"Vorschau","edit":"Editieren","comment":"Kommentieren","support-markdown":"Markdown wird unterstützt","login-with-github":"Mit GitHub-Account anmelden","first-comment-person":"Sei die erste Person, welche einen Kommentar hinterlässt!","commented":"kommentierte","load-more":"Zeige mehr","counts":"%{counts} Kommentar |||| %{counts} Kommentare","sort-asc":"Älteste zuerst","sort-desc":"Neuste zuerst","logout":"Abmelden","anonymous":"Anonym","anonymously-comment":"Anonym","clear-cache":"Clear the page cache"}
 
 /***/ }),
 /* 169 */
@@ -12250,9 +12308,9 @@ webClient.interceptors.request.use(function (config) {
       headers['Accept'] = 'application/vnd.github.v3.full+json';
     }
 
-    if (conf.method.toLocaleLowerCase() === 'get') {
+    if (conf.method.toLowerCase() === 'get') {
       if (conf.cache.enable) {
-        var cacheKey = buildCacheKey(conf);
+        var cacheKey = conf.cache.cacheKey || buildCacheKey(conf);
         var cacheData = _cache2.default.fetch(cacheKey);
         if (cacheData) {
           var source = _axios2.default.CancelToken.source();
@@ -12277,10 +12335,10 @@ webClient.interceptors.response.use(function (res) {
   }
 
   var conf = (0, _assign2.default)({ cache: { enable: true } }, res.config);
-  if (conf.method.toLocaleLowerCase() === 'get') {
+  if (conf.method.toLowerCase() === 'get') {
     var data = res.data;
     if (data && conf.cache.enable) {
-      var cacheKey = buildCacheKey(conf);
+      var cacheKey = conf.cache.cacheKey || buildCacheKey(conf);
       _cache2.default.save(cacheKey, data, conf.cache.ttl);
     }
   }
@@ -12292,7 +12350,7 @@ webClient.interceptors.response.use(function (res) {
     return new _promise2.default(function (resolve) {
       return setTimeout(function () {
         return resolve(err.message);
-      }, 200);
+      }, 150);
     });
   }
 

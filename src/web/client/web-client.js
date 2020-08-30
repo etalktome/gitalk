@@ -47,7 +47,7 @@ webClient.interceptors.request.use(config => {
       headers['Accept'] = 'application/vnd.github.v3.full+json'
     }
 
-    if (conf.method.toLocaleLowerCase() === 'get') {
+    if (conf.method.toLowerCase() === 'get') {
       if (conf.cache.enable) {
         const cacheKey = conf.cache.cacheKey || buildCacheKey(conf)
         const cacheData = cache.fetch(cacheKey)
@@ -72,7 +72,7 @@ webClient.interceptors.response.use(res => {
   }
 
   const conf = Object.assign({cache: { enable: true }},res.config)
-  if (conf.method.toLocaleLowerCase() === 'get') {
+  if (conf.method.toLowerCase() === 'get') {
     const data = res.data
     if (data && conf.cache.enable) {
       const cacheKey = conf.cache.cacheKey || buildCacheKey(conf)

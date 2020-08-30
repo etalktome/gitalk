@@ -320,8 +320,6 @@ class GitalkComponent extends Component {
           params: {
             per_page: perPage,
             page,
-            sort: 'comments',
-            direction: this.state.pagerDirection === 'last' ? 'asc' : 'desc'
           },
           proxy: true,
           cache: cacheInfo
@@ -376,7 +374,7 @@ class GitalkComponent extends Component {
 
     return this.getIssue()
       .then(issue => {
-        axiosGithub.post(issue.comments_url, {
+        return axiosGithub.post(issue.comments_url, {
           body: comment
         }, {
           headers: {
@@ -623,13 +621,13 @@ class GitalkComponent extends Component {
           isCreating: false,
           isOccurError: false
         }))
-        .catch(err => {
-          this.setState({
-            isCreating: false,
-            isOccurError: true,
-            errorMsg: formatErrorMsg(err)
-          })
-        })
+        // .catch(err => {
+        //   this.setState({
+        //     isCreating: false,
+        //     isOccurError: true,
+        //     errorMsg: formatErrorMsg(err)
+        //   })
+        // })
       return { isCreating: true }
     })
   }

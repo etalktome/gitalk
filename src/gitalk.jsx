@@ -440,6 +440,7 @@ class GitalkComponent extends Component {
     const { comment } = this.state
     const { accountName } = this.options.anonymous
     const username = replyComment.user.login
+    console.log(replyComment)
 
     const replyCommentBody = parseBody(replyComment,this.options.anonymous.accountName)
     let replyCommentArray = replyCommentBody.split('\n')

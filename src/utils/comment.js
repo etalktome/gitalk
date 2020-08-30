@@ -39,9 +39,14 @@ export const parseBody = (comment,accountName) => {
 	let arr = comment.body.split('\n');
 	let content = arr[0]
 	const result = content.match('<!--(.*)-->')
-	if (!result) { return commentBody }
-
-	arr.shift()
+	if (result) {
+		arr.shift()
+	}
+	
+	arr = arr.filter(item => {
+		return item && !item.trim().startsWith('>')
+	})
+	console.log(arr)
 
 	return arr.join('\n')
 }
